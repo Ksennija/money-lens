@@ -1,1 +1,4 @@
-// Entry point placeholder — implementation to be added later.
+function sum(a: number, b: number): number {
+  return a + b;
+}
+module.exports = sum;
