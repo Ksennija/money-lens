@@ -1,6 +1,6 @@
 import request from "supertest";
 import { createApp } from "./app.js";
-import { prisma } from "./db.js";
+import { prisma } from "./db/client.js";
 
 const TEST_EMAIL = "newuser@example.com";
 
