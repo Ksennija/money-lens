@@ -1,4 +1,4 @@
-import RegistrationPage from "./RegistrationPage";
+import RegistrationPage from "./pages/RegistrationPage";
 import "./App.css";
 
 function App() {

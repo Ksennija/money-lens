@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from 'react';
+import { registerUser } from '../api/register';
 
 export default function RegistrationPage() {
   const [email, setEmail] = useState('');
@@ -7,13 +8,8 @@ export default function RegistrationPage() {
 
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const body = await res.json();
-    setMessage(body.message);
+    const result = await registerUser(email, password);
+    setMessage(result.message);
   }
 
   return (
