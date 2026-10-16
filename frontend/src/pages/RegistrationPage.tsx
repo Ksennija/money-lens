@@ -1,15 +1,22 @@
 import { useState, type SubmitEvent } from 'react';
-import { registerUser } from '../api/register';
+import { registerUser, type RegisterResult } from '../api/register';
 
 export default function RegistrationPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [result, setResult] = useState<RegisterResult | null>(null);
+  const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
-    const result = await registerUser(email, password);
-    setMessage(result.message);
+    if (pending) return;
+    setPending(true);
+    setResult(null);
+    try {
+      setResult(await registerUser(email, password));
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -23,8 +30,15 @@ export default function RegistrationPage() {
         Password
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </label>
-      <button type="submit">Register</button>
-      {message && <p role="status">{message}</p>}
+      <button type="submit" disabled={pending}>
+        Register
+      </button>
+      {result?.ok && <p role="status">{result.message}</p>}
+      {result && !result.ok && (
+        <p role="alert" style={{ color: 'crimson' }}>
+          {result.message}
+        </p>
+      )}
     </form>
   );
 }
