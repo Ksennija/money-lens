@@ -12,7 +12,7 @@ describe("RegistrationPage", () => {
     const fetchMock = jest.fn(async (_url: string, _init?: RequestInit) => ({
       ok: true,
       status: 201,
-      json: async () => ({ message: "The registration is succeeded" }),
+      json: async () => ({ code: "registered", message: "The registration is succeeded" }),
     }));
     globalThis.fetch = fetchMock as unknown as typeof fetch;
 
