@@ -1,6 +1,7 @@
 import express from 'express';
 import { sessionMiddleware } from './middleware/session.js';
 import { loginRoutes } from './routes/login.js';
+import { logoutRoutes } from './routes/logout.js';
 import { registerRoutes } from './routes/register.js';
 
 export function createApp() {
@@ -9,5 +10,6 @@ export function createApp() {
   app.use(sessionMiddleware());
   app.use(registerRoutes());
   app.use(loginRoutes());
+  app.use(logoutRoutes());
   return app;
 }

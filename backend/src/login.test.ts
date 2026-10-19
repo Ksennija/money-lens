@@ -15,8 +15,11 @@ describe("POST /api/login", () => {
   });
 
   afterEach(async () => {
+    const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
+    if (user) {
+      await prisma.session.deleteMany({ where: { sess: { path: ["userId"], equals: user.id } } });
+    }
     await prisma.user.deleteMany({ where: { email: TEST_EMAIL } });
-    await prisma.session.deleteMany();
   });
 
   afterAll(async () => {
@@ -44,8 +47,10 @@ describe("POST /api/login", () => {
     expect(cookie).toContain("HttpOnly");
 
     const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
-    const sessions = await prisma.session.findMany();
-    expect(sessions.some((s) => (s.sess as { userId?: string }).userId === user?.id)).toBe(true);
+    const sessionCount = await prisma.session.count({
+      where: { sess: { path: ["userId"], equals: user?.id } },
+    });
+    expect(sessionCount).toBe(1);
   });
 
   it("does not start a session when login fails", async () => {
