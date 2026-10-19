@@ -24,3 +24,12 @@ export async function isEmailTaken(email: string): Promise<boolean> {
   const existingUser = await prisma.user.findUnique({ where: { email } });
   return existingUser !== null;
 }
+
+export type UserRecord = { id: string; email: string; passwordHash: string };
+
+export async function findUserByEmail(email: string): Promise<UserRecord | null> {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, passwordHash: true },
+  });
+}
