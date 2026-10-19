@@ -25,6 +25,12 @@ export async function isEmailTaken(email: string): Promise<boolean> {
   return existingUser !== null;
 }
 
+export type PublicUser = { id: string; email: string };
+
+export async function findUserById(id: string): Promise<PublicUser | null> {
+  return prisma.user.findUnique({ where: { id }, select: { id: true, email: true } });
+}
+
 export type UserRecord = { id: string; email: string; passwordHash: string };
 
 export async function findUserByEmail(email: string): Promise<UserRecord | null> {
