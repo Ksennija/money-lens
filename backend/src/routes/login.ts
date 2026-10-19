@@ -35,6 +35,12 @@ export function loginRoutes(): Router {
         return;
       }
 
+      // Fresh session id on login, so an id issued before authentication can't be reused.
+      await new Promise<void>((resolve, reject) =>
+        req.session.regenerate((error) => (error ? reject(error) : resolve())),
+      );
+      req.session.userId = user.id;
+
       res.status(200).json({ code: 'logged-in', message: 'Logged in' });
     } catch (error) {
       console.error('Login failed', error);

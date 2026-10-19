@@ -1,6 +1,7 @@
 import request from "supertest";
 import { createApp } from "./app.js";
 import { prisma } from "./db/client.js";
+import { pool } from "./db/pool.js";
 
 const TEST_EMAIL = "loginuser@example.com";
 const TEST_PASSWORD = "ValidPass123";
@@ -15,10 +16,12 @@ describe("POST /api/login", () => {
 
   afterEach(async () => {
     await prisma.user.deleteMany({ where: { email: TEST_EMAIL } });
+    await prisma.session.deleteMany();
   });
 
   afterAll(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it("logs in with correct credentials", async () => {
@@ -28,6 +31,29 @@ describe("POST /api/login", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ code: "logged-in", message: "Logged in" });
+  });
+
+  it("starts a server-side session and sets an HttpOnly session cookie on success", async () => {
+    const res = await request(createApp())
+      .post("/api/login")
+      .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
+
+    const cookie = (res.headers["set-cookie"] as unknown as string[]).find((c) =>
+      c.startsWith("connect.sid="),
+    );
+    expect(cookie).toContain("HttpOnly");
+
+    const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
+    const sessions = await prisma.session.findMany();
+    expect(sessions.some((s) => (s.sess as { userId?: string }).userId === user?.id)).toBe(true);
+  });
+
+  it("does not start a session when login fails", async () => {
+    const res = await request(createApp())
+      .post("/api/login")
+      .send({ email: TEST_EMAIL, password: "WrongPassword123" });
+
+    expect(res.headers["set-cookie"]).toBeUndefined();
   });
 
   it("rejects a wrong password with 401 invalid-credentials", async () => {

@@ -18,3 +18,13 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 }
+
+// Table used by connect-pg-simple; its name and columns are fixed by that library.
+model Session {
+  sid    String   @id @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire])
+  @@map("session")
+}
