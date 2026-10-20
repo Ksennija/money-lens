@@ -17,6 +17,24 @@ model User {
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime @db.Date
+  amountCents  Int // signed: negative is money out, positive is money in
+  currency     String
+  counterparty String
+  details      String
+  source       String   @default("csv")
+  externalId   String? // reserved for a future bank API source
+  createdAt    DateTime @default(now())
+
+  @@index([userId, date])
 }
 
 // Table used by connect-pg-simple; its name and columns are fixed by that library.
