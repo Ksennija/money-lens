@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { logoutUser, type CurrentUser } from '../api/session';
+import ImportPage from './ImportPage';
 
 type AuthenticatedPageProps = { user: CurrentUser; onLoggedOut: () => void };
 
@@ -34,6 +35,7 @@ export default function AuthenticatedPage({ user, onLoggedOut }: AuthenticatedPa
           {error}
         </p>
       )}
+      <ImportPage />
     </main>
   );
 }

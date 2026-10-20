@@ -41,6 +41,7 @@ describe("App", () => {
 
     expect(await screen.findByText(/user@example\.com/)).not.toBeNull();
     expect(screen.getByRole("button", { name: /log out/i })).not.toBeNull();
+    expect(screen.getByRole("heading", { name: /import transactions/i })).not.toBeNull();
     expect(screen.queryByRole("heading", { name: /log in/i })).toBeNull();
   });
 
