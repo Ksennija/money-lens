@@ -1,0 +1,37 @@
+Booking date;Value date;Counterparty;Details;Amount;Currency;Balance
+01.08.2026;01.08.2026;Acme GmbH;Salary August;3200,00;EUR;4150,20
+01.08.2026;01.08.2026;Sunrise Estates;Rent August;-1100,00;EUR;3050,20
+02.08.2026;02.08.2026;REWE Markt;Card payment groceries;-54,37;EUR;2995,83
+03.08.2026;03.08.2026;Café Luna;Card payment coffee;-3,80;EUR;2992,03
+03.08.2026;04.08.2026;Netflix;Subscription;-12,99;EUR;2979,04
+05.08.2026;05.08.2026;Stadtwerke;Electricity advance;-62,00;EUR;2917,04
+07.08.2026;07.08.2026;Café Luna;Card payment coffee;-3,80;EUR;2913,24
+08.08.2026;08.08.2026;Deutsche Bahn;Train ticket;-39,90;EUR;2873,34
+10.08.2026;10.08.2026;Lidl;Card payment groceries;-27,15;EUR;2846,19
+12.08.2026;12.08.2026;Amazon;Online order;-48,99;EUR;2797,20
+14.08.2026;14.08.2026;Amazon;Refund return;18,99;EUR;2816,19
+15.08.2026;15.08.2026;Spotify;Subscription;-10,99;EUR;2805,20
+17.08.2026;17.08.2026;Trattoria Roma;Card payment restaurant;-46,50;EUR;2758,70
+19.08.2026;19.08.2026;FitLife;Gym membership;-29,90;EUR;2728,80
+21.08.2026;21.08.2026;REWE Markt;Card payment groceries;-61,02;EUR;2667,78
+24.08.2026;24.08.2026;Shell;Fuel;-58,40;EUR;2609,38
+27.08.2026;27.08.2026;Anna Weber;Transfer dinner split;-25,00;EUR;2584,38
+29.08.2026;29.08.2026;Pharmacy Apotheke;Card payment;-14,25;EUR;2570,13
+01.09.2026;01.09.2026;Acme GmbH;Salary September;3200,00;EUR;5770,13
+01.09.2026;01.09.2026;Sunrise Estates;Rent September;-1100,00;EUR;4670,13
+02.09.2026;02.09.2026;REWE Markt;Card payment groceries;-72,18;EUR;4597,95
+03.09.2026;03.09.2026;Café Luna;Card payment coffee;-3,80;EUR;4594,15
+03.09.2026;04.09.2026;Netflix;Subscription;-12,99;EUR;4581,16
+05.09.2026;05.09.2026;Stadtwerke;Electricity advance;-62,00;EUR;4519,16
+06.09.2026;06.09.2026;Café Luna;Card payment coffee;-3,80;EUR;4515,36
+09.09.2026;09.09.2026;Zara;Card payment clothing;-89,95;EUR;4425,41
+11.09.2026;11.09.2026;Lidl;Card payment groceries;-33,60;EUR;4391,81
+13.09.2026;13.09.2026;Cinemaxx;Cinema tickets;-24,00;EUR;4367,81
+15.09.2026;15.09.2026;Spotify;Subscription;-10,99;EUR;4356,82
+16.09.2026;16.09.2026;Trattoria Roma;Card payment restaurant;-58,70;EUR;4298,12
+19.09.2026;19.09.2026;FitLife;Gym membership;-29,90;EUR;4268,22
+20.09.2026;20.09.2026;Acme GmbH;Expense reimbursement;120,00;EUR;4388,22
+22.09.2026;22.09.2026;REWE Markt;Card payment groceries;-66,44;EUR;4321,78
+25.09.2026;25.09.2026;Shell;Fuel;-61,10;EUR;4260,68
+28.09.2026;28.09.2026;Deutsche Bahn;Train ticket;-39,90;EUR;4220,78
+30.09.2026;30.09.2026;Bank;Account fee;-4,90;EUR;4215,88
