@@ -1,5 +1,6 @@
 import express from 'express';
 import { sessionMiddleware } from './middleware/session.js';
+import { importTransactionsRoutes } from './routes/importTransactions.js';
 import { loginRoutes } from './routes/login.js';
 import { logoutRoutes } from './routes/logout.js';
 import { meRoutes } from './routes/me.js';
@@ -13,5 +14,6 @@ export function createApp() {
   app.use(loginRoutes());
   app.use(logoutRoutes());
   app.use(meRoutes());
+  app.use(importTransactionsRoutes());
   return app;
 }
