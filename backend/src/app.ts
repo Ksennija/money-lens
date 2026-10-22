@@ -1,5 +1,6 @@
 import express from 'express';
 import { sessionMiddleware } from './middleware/session.js';
+import { comparisonRoutes } from './routes/comparison.js';
 import { importTransactionsRoutes } from './routes/importTransactions.js';
 import { loginRoutes } from './routes/login.js';
 import { logoutRoutes } from './routes/logout.js';
@@ -15,5 +16,6 @@ export function createApp() {
   app.use(logoutRoutes());
   app.use(meRoutes());
   app.use(importTransactionsRoutes());
+  app.use(comparisonRoutes());
   return app;
 }
