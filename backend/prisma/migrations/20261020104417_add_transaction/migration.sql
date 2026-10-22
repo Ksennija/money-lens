@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "Transaction" (
+GRANT CREATE TABLE "Transaction" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "date" DATE NOT NULL,

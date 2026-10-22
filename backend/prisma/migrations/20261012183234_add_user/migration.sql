@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "User" (
+GRANT CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
