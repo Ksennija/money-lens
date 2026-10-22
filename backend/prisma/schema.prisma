@@ -37,6 +37,17 @@ model Transaction {
   @@index([userId, date])
 }
 
+// Cached daily rates from api.frankfurter.dev: 1 unit of base = rate units of quote.
+model ExchangeRate {
+  date      DateTime @db.Date
+  base      String
+  quote     String
+  rate      Float
+  fetchedAt DateTime @default(now())
+
+  @@id([date, base, quote])
+}
+
 // Table used by connect-pg-simple; its name and columns are fixed by that library.
 model Session {
   sid    String   @id @db.VarChar
