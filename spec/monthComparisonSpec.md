@@ -20,7 +20,7 @@ Requires a logged-in user.
 
 | Query parameter | Meaning | Default |
 | --- | --- | --- |
-| `month` | `YYYY-MM`, the month to report | The current month (UTC) |
+| `month` | `YYYY-MM`, the month to report | The month of the user's most recent transaction, or the current month (UTC) when the user has none |
 | `currency` | Three-letter code to report in, case-insensitive | The most common currency among the user's transactions in the two months, else `EUR` |
 
 | Case | Status | `code` |
