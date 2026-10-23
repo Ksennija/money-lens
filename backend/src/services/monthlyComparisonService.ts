@@ -1,4 +1,8 @@
-import { findTransactionAmounts, type TransactionAmount } from '../db/transactionRepository.js';
+import {
+  findLatestTransactionDate,
+  findTransactionAmounts,
+  type TransactionAmount,
+} from '../db/transactionRepository.js';
 import {
   compareTotals,
   monthBounds,
@@ -28,15 +32,24 @@ function mostCommonCurrency(rows: TransactionAmount[]): string | undefined {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
 }
 
+// Without a month, the month of the user's most recent transaction is used, because imported
+// bank files are usually for past months. A user with no transactions gets the current month.
+async function resolveMonth(userId: string, month: string | undefined): Promise<string> {
+  if (month) return month;
+  const latest = await findLatestTransactionDate(userId);
+  return (latest ?? new Date().toISOString()).slice(0, 7);
+}
+
 // Every transaction is converted with the rate of its own day, so the totals of a month do not
 // shift when rates move later. Each foreign currency needs at most one API request, and none
 // once its rates are cached.
 export async function getMonthlyComparison(
   userId: string,
-  month: string,
+  requestedMonth: string | undefined,
   requestedCurrency?: string,
   fetchRates?: FetchRates,
 ): Promise<MonthlyComparison> {
+  const month = await resolveMonth(userId, requestedMonth);
   const previous = previousMonth(month);
   const rows = await findTransactionAmounts(
     userId,

@@ -10,8 +10,8 @@ export function comparisonRoutes(): Router {
   const router = Router();
 
   router.get('/api/comparison', requireAuth, async (req, res) => {
-    const month = typeof req.query.month === 'string' ? req.query.month : new Date().toISOString().slice(0, 7);
-    if (!isValidMonth(month)) {
+    const month = req.query.month;
+    if (month !== undefined && (typeof month !== 'string' || !isValidMonth(month))) {
       res.status(400).json({ code: 'invalid-month', message: 'Month must look like 2026-08' });
       return;
     }

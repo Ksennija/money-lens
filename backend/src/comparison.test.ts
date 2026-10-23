@@ -87,6 +87,52 @@ describe("GET /api/comparison", () => {
     });
   });
 
+  describe("without a month", () => {
+    it("reports the month of the user's most recent transaction", async () => {
+      const { agent, userId } = await loggedInAgent(USER_EMAIL);
+      const other = await loggedInAgent(OTHER_USER_EMAIL);
+      await prisma.transaction.createMany({
+        data: [
+          tx("2026-07-05", -1000),
+          tx("2026-08-03", -1500),
+          tx("2026-08-20", 30000),
+        ].map((t) => ({ ...t, userId })),
+      });
+      // Another user's later transaction must not move this user's default month.
+      await prisma.transaction.createMany({ data: [{ ...tx("2026-09-10", -100), userId: other.userId }] });
+
+      const res = await agent.get("/api/comparison");
+
+      expect(res.status).toBe(200);
+      expect(res.body.month).toBe("2026-08");
+      expect(res.body.previousMonth).toBe("2026-07");
+      expect(res.body.current).toEqual({ spendingCents: 1500, incomeCents: 30000, netCents: 28500 });
+      expect(res.body.previous).toEqual({ spendingCents: 1000, incomeCents: 0, netCents: -1000 });
+    });
+
+    it("falls back to the current month when the user has no transactions", async () => {
+      const { agent } = await loggedInAgent(USER_EMAIL);
+
+      const res = await agent.get("/api/comparison");
+
+      expect(res.status).toBe(200);
+      expect(res.body.month).toBe(new Date().toISOString().slice(0, 7));
+      expect(res.body.current).toEqual({ spendingCents: 0, incomeCents: 0, netCents: 0 });
+    });
+
+    it("still uses an explicit month even when newer transactions exist", async () => {
+      const { agent, userId } = await loggedInAgent(USER_EMAIL);
+      await prisma.transaction.createMany({
+        data: [tx("2026-07-05", -1000), tx("2026-08-03", -1500)].map((t) => ({ ...t, userId })),
+      });
+
+      const res = await agent.get("/api/comparison?month=2026-07");
+
+      expect(res.body.month).toBe("2026-07");
+      expect(res.body.current.spendingCents).toBe(1000);
+    });
+  });
+
   it("uses the currency from the query when given, case-insensitively", async () => {
     const { agent, userId } = await loggedInAgent(USER_EMAIL);
     await prisma.transaction.createMany({
