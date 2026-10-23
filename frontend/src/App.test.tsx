@@ -19,6 +19,18 @@ function mockApi(routes: Record<string, MockResponse[]>) {
 
 const NOT_LOGGED_IN = { status: 401, body: { code: "unauthenticated", message: "Not logged in" } };
 const LOGGED_IN_ME = { status: 200, body: { email: "user@example.com" } };
+const COMPARISON = {
+  status: 200,
+  body: {
+    code: "comparison",
+    month: "2026-09",
+    previousMonth: "2026-08",
+    currency: "EUR",
+    current: { spendingCents: 296000, incomeCents: 320000, netCents: 24000 },
+    previous: { spendingCents: 259000, incomeCents: 310000, netCents: 51000 },
+    change: { spendingCents: 37000, incomeCents: 10000, netCents: -27000, spendingPercent: null, incomePercent: null },
+  },
+};
 
 describe("App", () => {
   afterEach(() => {
@@ -35,12 +47,13 @@ describe("App", () => {
   });
 
   it("shows the authenticated area when a session already exists, e.g. after a reload", async () => {
-    mockApi({ "GET /api/me": [LOGGED_IN_ME] });
+    mockApi({ "GET /api/me": [LOGGED_IN_ME], "GET /api/comparison": [COMPARISON] });
 
     render(<App />);
 
     expect(await screen.findByText(/user@example\.com/)).not.toBeNull();
     expect(screen.getByRole("button", { name: /log out/i })).not.toBeNull();
+    expect(await screen.findByRole("heading", { name: "September 2026 · EUR" })).not.toBeNull();
     expect(screen.getByRole("heading", { name: /import transactions/i })).not.toBeNull();
     expect(screen.queryByRole("heading", { name: /log in/i })).toBeNull();
   });
@@ -48,6 +61,7 @@ describe("App", () => {
   it("shows the authenticated area after logging in", async () => {
     mockApi({
       "GET /api/me": [NOT_LOGGED_IN, LOGGED_IN_ME],
+      "GET /api/comparison": [COMPARISON],
       "POST /api/login": [{ status: 200, body: { code: "logged-in", message: "Logged in" } }],
     });
 
@@ -63,6 +77,7 @@ describe("App", () => {
   it("returns to the login page after logging out", async () => {
     mockApi({
       "GET /api/me": [LOGGED_IN_ME],
+      "GET /api/comparison": [COMPARISON],
       "POST /api/logout": [{ status: 200, body: { code: "logged-out", message: "Logged out" } }],
     });
 
@@ -76,6 +91,7 @@ describe("App", () => {
   it("stays in the authenticated area and shows an error when logout fails", async () => {
     mockApi({
       "GET /api/me": [LOGGED_IN_ME],
+      "GET /api/comparison": [COMPARISON],
       "POST /api/logout": [{ status: 500, body: { code: "server-error", message: "Something went wrong" } }],
     });
 
