@@ -1,5 +1,5 @@
 import { prisma } from "./client.js";
-import { importTransactions } from "./transactionRepository.js";
+import { findLatestTransactionDate, importTransactions } from "./transactionRepository.js";
 import { createUser, findUserByEmail } from "./userRepository.js";
 import type { ParsedRow } from "../domain/transactions/parseBankCsv.js";
 
@@ -130,5 +130,40 @@ describe("importTransactions", () => {
     await expect(importTransactions(userId, [SALARY, tooLargeForColumn])).rejects.toThrow();
 
     expect(await prisma.transaction.count({ where: { userId } })).toBe(0);
+  });
+});
+
+describe("findLatestTransactionDate", () => {
+  let userId: string;
+  let otherUserId: string;
+
+  beforeEach(async () => {
+    userId = await createTestUser(USER_EMAIL);
+    otherUserId = await createTestUser(OTHER_USER_EMAIL);
+  });
+
+  afterEach(async () => {
+    await prisma.user.deleteMany({ where: { email: { in: [USER_EMAIL, OTHER_USER_EMAIL] } } });
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it("returns the date of the user's most recent transaction", async () => {
+    await importTransactions(userId, [SALARY, COFFEE, { ...COFFEE, date: "2026-07-15", amountCents: -100 }]);
+
+    expect(await findLatestTransactionDate(userId)).toBe("2026-08-03");
+  });
+
+  it("returns null when the user has no transactions", async () => {
+    expect(await findLatestTransactionDate(userId)).toBeNull();
+  });
+
+  it("ignores another user's more recent transactions", async () => {
+    await importTransactions(userId, [SALARY]);
+    await importTransactions(otherUserId, [{ ...COFFEE, date: "2026-09-20" }]);
+
+    expect(await findLatestTransactionDate(userId)).toBe("2026-08-01");
   });
 });

@@ -73,3 +73,13 @@ export async function findTransactionAmounts(
     currency: row.currency,
   }));
 }
+
+// Date (YYYY-MM-DD) of the user's most recent transaction, or null when there are none.
+export async function findLatestTransactionDate(userId: string): Promise<string | null> {
+  const latest = await prisma.transaction.findFirst({
+    where: { userId },
+    orderBy: { date: 'desc' },
+    select: { date: true },
+  });
+  return latest ? latest.date.toISOString().slice(0, 10) : null;
+}
