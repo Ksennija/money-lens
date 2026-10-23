@@ -8,7 +8,7 @@ export default {
   },
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.(js|tsx?)$': '$1',
-    '\\.(css|less|scss)$': '<rootDir>/jest.styleMock.js',
+    '\\.(css|less|scss)$': '<rootDir>/jest.styleMock.cjs',
   },
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
 };
