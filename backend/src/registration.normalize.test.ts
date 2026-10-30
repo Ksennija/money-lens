@@ -11,7 +11,7 @@ const EMAILS = [
   "Repro.User3@Example.com",
 ];
 
-describe("email normalization repro", () => {
+describe("email normalization", () => {
   afterEach(async () => {
     await prisma.user.deleteMany({ where: { email: { in: EMAILS } } });
   });
