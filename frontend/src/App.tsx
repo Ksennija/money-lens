@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
+import { Route, Routes } from "react-router-dom";
+import PlaceholderPage from "./pages/PlaceholderPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
 import AuthenticatedPage from "./pages/AuthenticatedPage";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import "./App.css";
 
-type SessionState = { status: "loading" } | { status: "logged-out" } | { status: "logged-in"; user: CurrentUser };
+type SessionState =
+  | { status: "loading" }
+  | { status: "logged-out" }
+  | { status: "logged-in"; user: CurrentUser };
 
 function toSessionState(user: CurrentUser | null): SessionState {
   return user ? { status: "logged-in", user } : { status: "logged-out" };
@@ -34,15 +39,18 @@ function App() {
 
   if (session.status === "logged-in") {
     return (
-      <AuthenticatedPage user={session.user} onLoggedOut={() => setSession({ status: "logged-out" })} />
+      <AuthenticatedPage
+        user={session.user}
+        onLoggedOut={() => setSession({ status: "logged-out" })}
+      />
     );
   }
 
   return (
-    <>
-      <LoginPage onLoggedIn={loadSession} />
-      <RegistrationPage />
-    </>
+    <Routes>
+      <Route path="/" element={<PlaceholderPage title="Home" />} />
+      <Route path="*" element={<PlaceholderPage title="Error page" />} />
+    </Routes>
   );
 }
 
