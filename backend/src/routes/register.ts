@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
+import { normalizeEmail } from '../domain/auth/normalizeEmail.js';
 import { validateRegistration } from '../domain/auth/validateRegistration.js';
 import { createUser, isEmailTaken } from '../db/userRepository.js';
 
@@ -25,14 +26,16 @@ export function registerRoutes(): Router {
         return;
       }
 
-      if (await isEmailTaken(email)) {
+      const normalizedEmail = normalizeEmail(email);
+
+      if (await isEmailTaken(normalizedEmail)) {
         res.status(409).json(EMAIL_TAKEN_RESPONSE);
         return;
       }
 
       const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
-      if ((await createUser(email, passwordHash)) === 'email-taken') {
+      if ((await createUser(normalizedEmail, passwordHash)) === 'email-taken') {
         res.status(409).json(EMAIL_TAKEN_RESPONSE);
         return;
       }

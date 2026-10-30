@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
+import { normalizeEmail } from '../domain/auth/normalizeEmail.js';
 import { findUserByEmail } from '../db/userRepository.js';
 
 const BCRYPT_SALT_ROUNDS = 10;
@@ -24,7 +25,7 @@ export function loginRoutes(): Router {
         return;
       }
 
-      const user = await findUserByEmail(email);
+      const user = await findUserByEmail(normalizeEmail(email));
       const passwordMatches = await bcrypt.compare(
         password,
         user?.passwordHash ?? DUMMY_PASSWORD_HASH,
