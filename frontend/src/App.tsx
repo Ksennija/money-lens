@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
+import NavBar from "./components/NavBar";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
 import AuthenticatedPage from "./pages/AuthenticatedPage";
@@ -47,12 +48,15 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<PlaceholderPage title="Home" />} />
-      <Route path="/signin" element={<LoginPage onLoggedIn={loadSession} />} />
-      <Route path="/signup" element={<RegistrationPage />} />
-      <Route path="*" element={<PlaceholderPage title="Error page" />} />
-    </Routes>
+    <>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<PlaceholderPage title="Home" />} />
+        <Route path="/signin" element={<LoginPage onLoggedIn={loadSession} />} />
+        <Route path="/signup" element={<RegistrationPage />} />
+        <Route path="*" element={<PlaceholderPage title="Error page" />} />
+      </Routes>
+    </>
   );
 }
 
