@@ -49,6 +49,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<PlaceholderPage title="Home" />} />
+      <Route path="/signin" element={<LoginPage onLoggedIn={loadSession} />} />
+      <Route path="/signup" element={<RegistrationPage />} />
       <Route path="*" element={<PlaceholderPage title="Error page" />} />
     </Routes>
   );

@@ -72,11 +72,14 @@ describe("App", () => {
     ).not.toBeNull();
   });
 
-  // re-enable when /signin exists
-  it.skip("shows the login page when there is no active session", async () => {
+  it("shows the login page when there is no active session", async () => {
     mockApi({ "GET /api/me": [NOT_LOGGED_IN] });
 
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={["/signin"]}>
+        <App />
+      </MemoryRouter>
+    );
 
     expect(
       await screen.findByRole("heading", { name: /log in/i })
@@ -103,8 +106,7 @@ describe("App", () => {
     expect(screen.queryByRole("heading", { name: /log in/i })).toBeNull();
   });
 
-  // re-enable when /signin exists
-  it.skip("shows the authenticated area after logging in", async () => {
+  it("shows the authenticated area after logging in", async () => {
     mockApi({
       "GET /api/me": [NOT_LOGGED_IN, LOGGED_IN_ME],
       "GET /api/comparison": [COMPARISON],
@@ -113,7 +115,11 @@ describe("App", () => {
       ],
     });
 
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={["/signin"]}>
+        <App />
+      </MemoryRouter>
+    );
     const loginForm = (
       await screen.findByRole("heading", { name: /log in/i })
     ).closest("form")!;
@@ -132,8 +138,7 @@ describe("App", () => {
     expect(await screen.findByText(/user@example\.com/)).not.toBeNull();
   });
 
-  // re-enable when /signin exists
-  it.skip("returns to the login page after logging out", async () => {
+  it("returns to the login page after logging out", async () => {
     mockApi({
       "GET /api/me": [LOGGED_IN_ME],
       "GET /api/comparison": [COMPARISON],
@@ -142,7 +147,11 @@ describe("App", () => {
       ],
     });
 
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={["/signin"]}>
+        <App />
+      </MemoryRouter>
+    );
     await userEvent.click(
       await screen.findByRole("button", { name: /log out/i })
     );
