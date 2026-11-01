@@ -25,7 +25,7 @@ export default function RegistrationPage({ onRegistered }: RegistrationPageProps
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1>Register</h1>
+      <h1>Sign up</h1>
       <label>
         Email
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -35,7 +35,7 @@ export default function RegistrationPage({ onRegistered }: RegistrationPageProps
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </label>
       <button type="submit" disabled={pending}>
-        Register
+        Sign up
       </button>
       {result?.ok && <p role="status">{result.message}</p>}
       {result && !result.ok && (

@@ -82,7 +82,7 @@ describe("App", () => {
     );
 
     expect(
-      await screen.findByRole("heading", { name: /log in/i })
+      await screen.findByRole("heading", { name: /sign in/i })
     ).not.toBeNull();
     expect(screen.queryByRole("button", { name: /sign out/i })).toBeNull();
   });
@@ -107,7 +107,7 @@ describe("App", () => {
     expect(
       screen.getByRole("heading", { name: /import transactions/i })
     ).not.toBeNull();
-    expect(screen.queryByRole("heading", { name: /log in/i })).toBeNull();
+    expect(screen.queryByRole("heading", { name: /sign in/i })).toBeNull();
   });
 
   it("shows the authenticated area after logging in", async () => {
@@ -125,7 +125,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     const loginForm = (
-      await screen.findByRole("heading", { name: /log in/i })
+      await screen.findByRole("heading", { name: /sign in/i })
     ).closest("form")!;
     await userEvent.type(
       within(loginForm).getByLabelText(/email/i),
@@ -136,7 +136,7 @@ describe("App", () => {
       "ValidPass123"
     );
     await userEvent.click(
-      within(loginForm).getByRole("button", { name: /log in/i })
+      within(loginForm).getByRole("button", { name: /sign in/i })
     );
 
     expect(await screen.findByText(/user@example\.com/)).not.toBeNull();
@@ -161,7 +161,7 @@ describe("App", () => {
     );
 
     expect(
-      await screen.findByRole("heading", { name: /log in/i })
+      await screen.findByRole("heading", { name: /sign in/i })
     ).not.toBeNull();
     expect(screen.queryByText(/user@example\.com/)).toBeNull();
   });
@@ -202,7 +202,7 @@ describe("App", () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
+    expect(await screen.findByRole("heading", { name: /sign in/i })).not.toBeNull();
   });
 
   it.each(["/signin", "/signup"])("redirects a signed-in user opening %s to the overview", async (path) => {
@@ -215,7 +215,7 @@ describe("App", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "September 2026 · EUR" })).not.toBeNull();
-    expect(screen.queryByRole("heading", { name: /log in|register/i })).toBeNull();
+    expect(screen.queryByRole("heading", { name: /sign in|sign up/i })).toBeNull();
   });
 
   it("lands on the sign in page after signing up", async () => {
@@ -231,9 +231,9 @@ describe("App", () => {
     );
     await userEvent.type(await screen.findByLabelText(/email/i), "new@example.com");
     await userEvent.type(screen.getByLabelText(/password/i), "ValidPass123");
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
+    await userEvent.click(screen.getByRole("button", { name: /sign up/i }));
 
-    expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
+    expect(await screen.findByRole("heading", { name: /sign in/i })).not.toBeNull();
   });
 
   it.each(["/transactions", "/insights", "/history"])(
@@ -247,7 +247,7 @@ describe("App", () => {
         </MemoryRouter>
       );
 
-      expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
+      expect(await screen.findByRole("heading", { name: /sign in/i })).not.toBeNull();
     }
   );
 

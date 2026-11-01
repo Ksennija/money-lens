@@ -16,7 +16,7 @@ function mockFetchResponse(status: number, body: unknown) {
 async function fillAndSubmit(email: string, password: string) {
   await userEvent.type(screen.getByLabelText(/email/i), email);
   await userEvent.type(screen.getByLabelText(/password/i), password);
-  await userEvent.click(screen.getByRole("button", { name: /log in/i }));
+  await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
 }
 
 describe("LoginPage", () => {
@@ -31,7 +31,7 @@ describe("LoginPage", () => {
     render(<LoginPage onLoggedIn={onLoggedIn} />);
     await fillAndSubmit("user@example.com", "ValidPass123");
 
-    await screen.findByRole("button", { name: /log in/i });
+    await screen.findByRole("button", { name: /sign in/i });
     expect(onLoggedIn).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("alert")).toBeNull();
     expect(fetchMock).toHaveBeenCalledWith("/api/login", expect.objectContaining({ method: "POST" }));
@@ -75,13 +75,13 @@ describe("LoginPage", () => {
         })
     ) as unknown as typeof fetch;
 
-    await userEvent.click(screen.getByRole("button", { name: /log in/i }));
+    await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect((screen.getByRole("button", { name: /log in/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /sign in/i }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.queryByRole("alert")).toBeNull();
 
     finish({ ok: false, status: 401, json: async () => ({ code: "invalid-credentials", message: "Invalid email or password" }) });
     await screen.findByRole("alert");
-    expect((screen.getByRole("button", { name: /log in/i }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole("button", { name: /sign in/i }) as HTMLButtonElement).disabled).toBe(false);
   });
 });

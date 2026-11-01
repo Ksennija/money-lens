@@ -16,7 +16,7 @@ function mockFetchResponse(status: number, body: unknown) {
 async function fillAndSubmit(email: string, password: string) {
   await userEvent.type(screen.getByLabelText(/email/i), email);
   await userEvent.type(screen.getByLabelText(/password/i), password);
-  await userEvent.click(screen.getByRole("button", { name: /register/i }));
+  await userEvent.click(screen.getByRole("button", { name: /sign up/i }));
 }
 
 describe("RegistrationPage", () => {
@@ -80,9 +80,9 @@ describe("RegistrationPage", () => {
     );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
 
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
+    await userEvent.click(screen.getByRole("button", { name: /sign up/i }));
 
-    expect((screen.getByRole("button", { name: /register/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /sign up/i }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.queryByRole("alert")).toBeNull();
 
     finish({
@@ -91,6 +91,6 @@ describe("RegistrationPage", () => {
       json: async () => ({ code: "registered", message: "The registration is succeeded" }),
     });
     expect((await screen.findByRole("status")).textContent).toBe("The registration is succeeded");
-    expect((screen.getByRole("button", { name: /register/i }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole("button", { name: /sign up/i }) as HTMLButtonElement).disabled).toBe(false);
   });
 });

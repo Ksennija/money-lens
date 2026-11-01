@@ -28,7 +28,7 @@ export default function LoginPage({ onLoggedIn }: LoginPageProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1>Log in</h1>
+      <h1>Sign in</h1>
       <label>
         Email
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -38,7 +38,7 @@ export default function LoginPage({ onLoggedIn }: LoginPageProps) {
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </label>
       <button type="submit" disabled={pending}>
-        Log in
+        Sign in
       </button>
       {result && !result.ok && (
         <p role="alert" style={{ color: 'crimson' }}>
