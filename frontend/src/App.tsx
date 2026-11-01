@@ -47,40 +47,54 @@ function App() {
 
   if (session.status === "logged-in") {
     return (
-      <Routes>
-        <Route path="/" element={<PlaceholderPage title="Home" />} />
-        <Route path="/signin" element={<Navigate to="/overview" replace />} />
-        <Route path="/signup" element={<Navigate to="/overview" replace />} />
-        <Route
-          path="/overview"
-          element={
-            <AuthenticatedPage
-              user={session.user}
-              onLoggedOut={() => setSession({ status: "logged-out" })}
-            />
-          }
+      <>
+        <NavBar
+          user={session.user}
+          onLoggedOut={() => setSession({ status: "logged-out" })}
         />
-        {PRIVATE_PLACEHOLDERS.map(({ path, title }) => (
-          <Route key={path} path={path} element={<PlaceholderPage title={title} />} />
-        ))}
-        <Route path="*" element={<PlaceholderPage title="Error page" />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<PlaceholderPage title="Home" />} />
+          <Route path="/signin" element={<Navigate to="/overview" replace />} />
+          <Route path="/signup" element={<Navigate to="/overview" replace />} />
+          <Route
+            path="/overview"
+            element={<AuthenticatedPage user={session.user} />}
+          />
+          {PRIVATE_PLACEHOLDERS.map(({ path, title }) => (
+            <Route
+              key={path}
+              path={path}
+              element={<PlaceholderPage title={title} />}
+            />
+          ))}
+          <Route path="*" element={<PlaceholderPage title="Error page" />} />
+        </Routes>
+      </>
     );
   }
 
   return (
     <>
-      <NavBar />
+      <NavBar user={null} />
       <Routes>
         <Route path="/" element={<PlaceholderPage title="Home" />} />
-        <Route path="/signin" element={<LoginPage onLoggedIn={loadSession} />} />
+        <Route
+          path="/signin"
+          element={<LoginPage onLoggedIn={loadSession} />}
+        />
         <Route
           path="/signup"
-          element={<RegistrationPage onRegistered={() => navigate("/signin")} />}
+          element={
+            <RegistrationPage onRegistered={() => navigate("/signin")} />
+          }
         />
         <Route path="/overview" element={<Navigate to="/signin" replace />} />
         {PRIVATE_PLACEHOLDERS.map(({ path }) => (
-          <Route key={path} path={path} element={<Navigate to="/signin" replace />} />
+          <Route
+            key={path}
+            path={path}
+            element={<Navigate to="/signin" replace />}
+          />
         ))}
         <Route path="*" element={<PlaceholderPage title="Error page" />} />
       </Routes>

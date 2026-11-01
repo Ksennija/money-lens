@@ -84,7 +84,7 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { name: /log in/i })
     ).not.toBeNull();
-    expect(screen.queryByRole("button", { name: /log out/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /sign out/i })).toBeNull();
   });
 
   it("shows the authenticated area when a session already exists, e.g. after a reload", async () => {
@@ -100,7 +100,7 @@ describe("App", () => {
     );
 
     expect(await screen.findByText(/user@example\.com/)).not.toBeNull();
-    expect(screen.getByRole("button", { name: /log out/i })).not.toBeNull();
+    expect(screen.getByRole("button", { name: /sign out/i })).not.toBeNull();
     expect(
       await screen.findByRole("heading", { name: "September 2026 · EUR" })
     ).not.toBeNull();
@@ -157,7 +157,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     await userEvent.click(
-      await screen.findByRole("button", { name: /log out/i })
+      await screen.findByRole("button", { name: /sign out/i })
     );
 
     expect(
@@ -184,7 +184,7 @@ describe("App", () => {
       </MemoryRouter>
     );
     await userEvent.click(
-      await screen.findByRole("button", { name: /log out/i })
+      await screen.findByRole("button", { name: /sign out/i })
     );
 
     expect((await screen.findByRole("alert")).textContent).toBe(
