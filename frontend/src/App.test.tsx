@@ -235,4 +235,35 @@ describe("App", () => {
 
     expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
   });
+
+  it.each(["/transactions", "/insights", "/history"])(
+    "redirects a signed-out user opening %s to the sign in page",
+    async (path) => {
+      mockApi({ "GET /api/me": [NOT_LOGGED_IN] });
+
+      render(
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      );
+
+      expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
+    }
+  );
+
+  it.each([
+    ["/transactions", "Transactions"],
+    ["/insights", "Insights"],
+    ["/history", "History"],
+  ])("shows the %s placeholder to a signed-in user", async (path, title) => {
+    mockApi({ "GET /api/me": [LOGGED_IN_ME] });
+
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole("heading", { name: title })).not.toBeNull();
+  });
 });

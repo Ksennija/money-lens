@@ -13,6 +13,12 @@ type SessionState =
   | { status: "logged-out" }
   | { status: "logged-in"; user: CurrentUser };
 
+const PRIVATE_PLACEHOLDERS = [
+  { path: "/transactions", title: "Transactions" },
+  { path: "/insights", title: "Insights" },
+  { path: "/history", title: "History" },
+];
+
 function toSessionState(user: CurrentUser | null): SessionState {
   return user ? { status: "logged-in", user } : { status: "logged-out" };
 }
@@ -54,6 +60,9 @@ function App() {
             />
           }
         />
+        {PRIVATE_PLACEHOLDERS.map(({ path, title }) => (
+          <Route key={path} path={path} element={<PlaceholderPage title={title} />} />
+        ))}
         <Route path="*" element={<PlaceholderPage title="Error page" />} />
       </Routes>
     );
@@ -70,6 +79,9 @@ function App() {
           element={<RegistrationPage onRegistered={() => navigate("/signin")} />}
         />
         <Route path="/overview" element={<Navigate to="/signin" replace />} />
+        {PRIVATE_PLACEHOLDERS.map(({ path }) => (
+          <Route key={path} path={path} element={<Navigate to="/signin" replace />} />
+        ))}
         <Route path="*" element={<PlaceholderPage title="Error page" />} />
       </Routes>
     </>
