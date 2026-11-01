@@ -1,7 +1,9 @@
 import { useState, type SubmitEvent } from 'react';
 import { registerUser, type RegisterResult } from '../api/register';
 
-export default function RegistrationPage() {
+type RegistrationPageProps = { onRegistered?: () => void };
+
+export default function RegistrationPage({ onRegistered }: RegistrationPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [result, setResult] = useState<RegisterResult | null>(null);
@@ -13,7 +15,9 @@ export default function RegistrationPage() {
     setPending(true);
     setResult(null);
     try {
-      setResult(await registerUser(email, password));
+      const registerResult = await registerUser(email, password);
+      setResult(registerResult);
+      if (registerResult.ok) onRegistered?.();
     } finally {
       setPending(false);
     }

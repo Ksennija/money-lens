@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
@@ -19,6 +19,7 @@ function toSessionState(user: CurrentUser | null): SessionState {
 
 function App() {
   const [session, setSession] = useState<SessionState>({ status: "loading" });
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -40,10 +41,21 @@ function App() {
 
   if (session.status === "logged-in") {
     return (
-      <AuthenticatedPage
-        user={session.user}
-        onLoggedOut={() => setSession({ status: "logged-out" })}
-      />
+      <Routes>
+        <Route path="/" element={<PlaceholderPage title="Home" />} />
+        <Route path="/signin" element={<Navigate to="/overview" replace />} />
+        <Route path="/signup" element={<Navigate to="/overview" replace />} />
+        <Route
+          path="/overview"
+          element={
+            <AuthenticatedPage
+              user={session.user}
+              onLoggedOut={() => setSession({ status: "logged-out" })}
+            />
+          }
+        />
+        <Route path="*" element={<PlaceholderPage title="Error page" />} />
+      </Routes>
     );
   }
 
@@ -53,7 +65,11 @@ function App() {
       <Routes>
         <Route path="/" element={<PlaceholderPage title="Home" />} />
         <Route path="/signin" element={<LoginPage onLoggedIn={loadSession} />} />
-        <Route path="/signup" element={<RegistrationPage />} />
+        <Route
+          path="/signup"
+          element={<RegistrationPage onRegistered={() => navigate("/signin")} />}
+        />
+        <Route path="/overview" element={<Navigate to="/signin" replace />} />
         <Route path="*" element={<PlaceholderPage title="Error page" />} />
       </Routes>
     </>

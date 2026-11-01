@@ -93,7 +93,11 @@ describe("App", () => {
       "GET /api/comparison": [COMPARISON],
     });
 
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={["/overview"]}>
+        <App />
+      </MemoryRouter>
+    );
 
     expect(await screen.findByText(/user@example\.com/)).not.toBeNull();
     expect(screen.getByRole("button", { name: /log out/i })).not.toBeNull();
@@ -148,7 +152,7 @@ describe("App", () => {
     });
 
     render(
-      <MemoryRouter initialEntries={["/signin"]}>
+      <MemoryRouter initialEntries={["/overview"]}>
         <App />
       </MemoryRouter>
     );
@@ -174,7 +178,11 @@ describe("App", () => {
       ],
     });
 
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={["/overview"]}>
+        <App />
+      </MemoryRouter>
+    );
     await userEvent.click(
       await screen.findByRole("button", { name: /log out/i })
     );
@@ -183,5 +191,48 @@ describe("App", () => {
       "Something went wrong"
     );
     expect(screen.getByText(/user@example\.com/)).not.toBeNull();
+  });
+
+  it("redirects a signed-out user opening /overview to the sign in page", async () => {
+    mockApi({ "GET /api/me": [NOT_LOGGED_IN] });
+
+    render(
+      <MemoryRouter initialEntries={["/overview"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
+  });
+
+  it.each(["/signin", "/signup"])("redirects a signed-in user opening %s to the overview", async (path) => {
+    mockApi({ "GET /api/me": [LOGGED_IN_ME], "GET /api/comparison": [COMPARISON] });
+
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole("heading", { name: "September 2026 · EUR" })).not.toBeNull();
+    expect(screen.queryByRole("heading", { name: /log in|register/i })).toBeNull();
+  });
+
+  it("lands on the sign in page after signing up", async () => {
+    mockApi({
+      "GET /api/me": [NOT_LOGGED_IN],
+      "POST /api/register": [{ status: 201, body: { code: "registered", message: "Registered" } }],
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/signup"]}>
+        <App />
+      </MemoryRouter>
+    );
+    await userEvent.type(await screen.findByLabelText(/email/i), "new@example.com");
+    await userEvent.type(screen.getByLabelText(/password/i), "ValidPass123");
+    await userEvent.click(screen.getByRole("button", { name: /register/i }));
+
+    expect(await screen.findByRole("heading", { name: /log in/i })).not.toBeNull();
   });
 });
