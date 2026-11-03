@@ -10,4 +10,4 @@ Tools: React for frontend and NodeJS for backend
 
 Folders: Monorepo: /frontend for the FE project and /backend the BE project
 
-This thing should be done consistently: Automatically categorize every banking transaction into the correct spending category.
+This thing should be done consistently: Automatically categorize every banking transaction into the correct spending category. The unmathched transactions are in the category "others".
