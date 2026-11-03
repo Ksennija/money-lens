@@ -1,5 +1,5 @@
 -- CreateTable
-GRANT CREATE TABLE "session" (
+CREATE TABLE "session" (
     "sid" VARCHAR NOT NULL,
     "sess" JSON NOT NULL,
     "expire" TIMESTAMP(6) NOT NULL,
