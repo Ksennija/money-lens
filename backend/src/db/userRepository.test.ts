@@ -1,4 +1,5 @@
 import { prisma } from "./client.js";
+import { pool } from "./pool.js";
 import { createUser, findUserByEmail } from "./userRepository.js";
 
 const TEST_EMAIL = "finduser@example.com";
@@ -11,6 +12,7 @@ describe("findUserByEmail", () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it("returns the user with id, email and passwordHash for a registered email", async () => {

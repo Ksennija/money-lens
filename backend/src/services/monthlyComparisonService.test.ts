@@ -1,4 +1,5 @@
 import { prisma } from '../db/client.js';
+import { pool } from '../db/pool.js';
 import { createUser, findUserByEmail } from '../db/userRepository.js';
 import { RateServiceError } from './currencyConversionService.js';
 import type { FetchRates } from './frankfurterClient.js';
@@ -40,6 +41,7 @@ describe('getMonthlyComparison', () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it('converts each foreign transaction at its own day with one API request for both months', async () => {

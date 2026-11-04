@@ -1,6 +1,7 @@
 import request from "supertest";
 import { createApp } from "./app.js";
 import { prisma } from "./db/client.js";
+import { pool } from "./db/pool.js";
 
 const EMAILS = [
   "repro.user@example.com",
@@ -18,6 +19,7 @@ describe("email normalization", () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it("rejects the same email in a different case with 409", async () => {

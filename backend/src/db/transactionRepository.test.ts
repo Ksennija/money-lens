@@ -1,4 +1,5 @@
 import { prisma } from "./client.js";
+import { pool } from "./pool.js";
 import { findLatestTransactionDate, importTransactions } from "./transactionRepository.js";
 import { createUser, findUserByEmail } from "./userRepository.js";
 import type { ParsedRow } from "../domain/transactions/parseBankCsv.js";
@@ -148,6 +149,7 @@ describe("findLatestTransactionDate", () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it("returns the date of the user's most recent transaction", async () => {

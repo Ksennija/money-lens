@@ -1,6 +1,7 @@
 import request from "supertest";
 import { createApp } from "./app.js";
 import { prisma } from "./db/client.js";
+import { pool } from "./db/pool.js";
 
 const TEST_EMAIL = "newuser@example.com";
 
@@ -11,6 +12,7 @@ describe("POST /api/register", () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it("registers a valid, unused email with a valid password", async () => {

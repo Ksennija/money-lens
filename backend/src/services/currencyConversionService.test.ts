@@ -1,4 +1,5 @@
 import { prisma } from '../db/client.js';
+import { pool } from '../db/pool.js';
 import { getRate, getRates, convertCents, InvalidCurrencyError, RateServiceError } from './currencyConversionService.js';
 import type { FetchRates } from './frankfurterClient.js';
 
@@ -25,6 +26,7 @@ describe('currency conversion service', () => {
   afterAll(async () => {
     await prisma.exchangeRate.deleteMany({ where: { base: FROM } });
     await prisma.$disconnect();
+    await pool.end();
   });
 
   it('fetches a rate once and serves later requests from the database', async () => {
