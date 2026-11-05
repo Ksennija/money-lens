@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { parseBankCsv } from '../domain/transactions/parseBankCsv.js';
-import { importTransactions } from '../db/transactionRepository.js';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { importBankCsv } from '../services/importService.js';
 
 const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
-const MAX_DATA_ROWS = 5000;
 
 const INVALID_FILE_RESPONSE = { code: 'invalid-file', message: 'Upload a CSV file' };
 const FILE_TOO_LARGE_RESPONSE = { code: 'file-too-large', message: 'The file is too large' };
@@ -43,28 +41,31 @@ export function importTransactionsRoutes(): Router {
           return;
         }
 
-        const parsed = parseBankCsv(file.buffer.toString('utf-8'));
+        const result = await importBankCsv(req.session.userId!, file.buffer.toString('utf-8'));
 
-        if ('malformed' in parsed) {
-          res.status(400).json(INVALID_FILE_RESPONSE);
-          return;
+        switch (result.kind) {
+          case 'malformed':
+            res.status(400).json(INVALID_FILE_RESPONSE);
+            return;
+          case 'missing-columns':
+            res.status(400).json({
+              code: 'missing-columns',
+              message: `Missing required columns: ${result.missingColumns.join(', ')}`,
+              missingColumns: result.missingColumns,
+            });
+            return;
+          case 'too-many-rows':
+            res.status(413).json(FILE_TOO_LARGE_RESPONSE);
+            return;
+          case 'imported':
+            res.status(200).json({
+              code: 'imported',
+              imported: result.imported,
+              duplicates: result.duplicates,
+              rejected: result.rejected,
+            });
+            return;
         }
-        if ('missingColumns' in parsed) {
-          res.status(400).json({
-            code: 'missing-columns',
-            message: `Missing required columns: ${parsed.missingColumns.join(', ')}`,
-            missingColumns: parsed.missingColumns,
-          });
-          return;
-        }
-        if (parsed.rows.length + parsed.rejected.length > MAX_DATA_ROWS) {
-          res.status(413).json(FILE_TOO_LARGE_RESPONSE);
-          return;
-        }
-
-        const { imported, duplicates } = await importTransactions(req.session.userId!, parsed.rows);
-
-        res.status(200).json({ code: 'imported', imported, duplicates, rejected: parsed.rejected });
       } catch (error) {
         console.error('Transaction import failed', error);
         res.status(500).json({ code: 'server-error', message: 'Something went wrong' });

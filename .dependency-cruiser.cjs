@@ -85,6 +85,14 @@ module.exports = {
       to: { path: ["^backend/src/generated/", "node_modules/(@prisma/[^/]+|prisma)/"] },
     },
     {
+      name: "import-route-not-db",
+      severity: "error",
+      comment:
+        "The import route reaches the database through services/importService. Widen this to all routes when the auth routes get services.",
+      from: { path: "^backend/src/routes/importTransactions\\.ts$" },
+      to: { path: "^backend/src/db/" },
+    },
+    {
       name: "not-to-test",
       severity: "error",
       comment: "Production code must not import test files.",
