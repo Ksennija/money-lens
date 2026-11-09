@@ -1,4 +1,4 @@
-import { formatMonth, formatMonthName, nextMonth } from "./months";
+import { formatMonth, formatMonthName, nextMonth, previousMonth } from "./months";
 
 describe("formatMonth", () => {
   it("shows the month name and the year", () => {
@@ -28,5 +28,19 @@ describe("nextMonth", () => {
 
   it("keeps the two-digit month format", () => {
     expect(nextMonth("2026-01")).toBe("2026-02");
+  });
+});
+
+describe("previousMonth", () => {
+  it("returns the preceding month", () => {
+    expect(previousMonth("2026-09")).toBe("2026-08");
+  });
+
+  it("moves across a year boundary", () => {
+    expect(previousMonth("2027-01")).toBe("2026-12");
+  });
+
+  it("keeps the two-digit month format", () => {
+    expect(previousMonth("2026-11")).toBe("2026-10");
   });
 });

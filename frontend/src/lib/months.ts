@@ -16,3 +16,9 @@ export function nextMonth(month: string): string {
   date.setUTCMonth(date.getUTCMonth() + 1);
   return date.toISOString().slice(0, 7);
 }
+
+export function previousMonth(month: string): string {
+  const date = monthDate(month);
+  date.setUTCMonth(date.getUTCMonth() - 1);
+  return date.toISOString().slice(0, 7);
+}
