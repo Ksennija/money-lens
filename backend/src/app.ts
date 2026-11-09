@@ -9,6 +9,7 @@ import { loginRoutes } from './routes/login.js';
 import { logoutRoutes } from './routes/logout.js';
 import { meRoutes } from './routes/me.js';
 import { registerRoutes } from './routes/register.js';
+import { transactionsRoutes } from './routes/transactions.js';
 
 export type AppOptions = {
   // Max login/register attempts per IP per window. Without it the default limit applies, except
@@ -45,6 +46,7 @@ export function createApp(options: AppOptions = {}) {
   app.use(meRoutes());
   app.use(importTransactionsRoutes());
   app.use(comparisonRoutes());
+  app.use(transactionsRoutes());
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);
