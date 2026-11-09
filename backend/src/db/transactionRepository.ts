@@ -74,6 +74,31 @@ export async function findTransactionAmounts(
   }));
 }
 
+export type TransactionListItem = {
+  id: string;
+  date: string;
+  counterparty: string;
+  details: string;
+  amountCents: number;
+  currency: string;
+};
+
+// Transactions from startDate (inclusive) to endDate (exclusive), both YYYY-MM-DD, newest first.
+// Rows of one day (and rows from one import, which share a creation time) end up in a stable
+// but arbitrary order.
+export async function findTransactionsInRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<TransactionListItem[]> {
+  const rows = await prisma.transaction.findMany({
+    where: { userId, date: { gte: toDate(startDate), lt: toDate(endDate) } },
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'asc' }],
+    select: { id: true, date: true, counterparty: true, details: true, amountCents: true, currency: true },
+  });
+  return rows.map((row) => ({ ...row, date: row.date.toISOString().slice(0, 10) }));
+}
+
 // Date (YYYY-MM-DD) of the user's most recent transaction, or null when there are none.
 export async function findLatestTransactionDate(userId: string): Promise<string | null> {
   const latest = await prisma.transaction.findFirst({

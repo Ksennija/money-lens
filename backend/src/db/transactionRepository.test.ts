@@ -1,6 +1,10 @@
 import { prisma } from "./client.js";
 import { pool } from "./pool.js";
-import { findLatestTransactionDate, importTransactions } from "./transactionRepository.js";
+import {
+  findLatestTransactionDate,
+  findTransactionsInRange,
+  importTransactions,
+} from "./transactionRepository.js";
 import { createUser, findUserByEmail } from "./userRepository.js";
 import type { ParsedRow } from "../domain/transactions/parseBankCsv.js";
 
@@ -131,6 +135,95 @@ describe("importTransactions", () => {
     await expect(importTransactions(userId, [SALARY, tooLargeForColumn])).rejects.toThrow();
 
     expect(await prisma.transaction.count({ where: { userId } })).toBe(0);
+  });
+});
+
+describe("findTransactionsInRange", () => {
+  let userId: string;
+  let otherUserId: string;
+
+  const row = (date: string, amountCents: number, currency = "EUR"): ParsedRow => ({
+    date,
+    amountCents,
+    currency,
+    counterparty: `Shop ${date}`,
+    details: `Test ${amountCents}`,
+  });
+
+  beforeEach(async () => {
+    userId = await createTestUser(USER_EMAIL);
+    otherUserId = await createTestUser(OTHER_USER_EMAIL);
+  });
+
+  afterEach(async () => {
+    await prisma.user.deleteMany({ where: { email: { in: [USER_EMAIL, OTHER_USER_EMAIL] } } });
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it("returns every field of the transactions in the range, newest first", async () => {
+    await importTransactions(userId, [SALARY, COFFEE, row("2026-08-20", -1000)]);
+
+    const found = await findTransactionsInRange(userId, "2026-08-01", "2026-09-01");
+
+    expect(found.map((t) => t.date)).toEqual(["2026-08-20", "2026-08-03", "2026-08-01"]);
+    expect(found[1]).toEqual({
+      id: expect.any(String),
+      date: "2026-08-03",
+      counterparty: "Café Luna",
+      details: "Card payment coffee",
+      amountCents: -380,
+      currency: "EUR",
+    });
+  });
+
+  it("includes the start date and excludes the end date", async () => {
+    await importTransactions(userId, [
+      row("2026-07-31", -100),
+      row("2026-08-01", -200),
+      row("2026-08-31", -300),
+      row("2026-09-01", -400),
+    ]);
+
+    const found = await findTransactionsInRange(userId, "2026-08-01", "2026-09-01");
+
+    expect(found.map((t) => t.date)).toEqual(["2026-08-31", "2026-08-01"]);
+  });
+
+  it("returns every transaction of a day when several share the same date", async () => {
+    await importTransactions(userId, [row("2026-08-10", -100), row("2026-08-10", -200)]);
+
+    const found = await findTransactionsInRange(userId, "2026-08-01", "2026-09-01");
+
+    expect(found.map((t) => t.amountCents).sort((x, y) => x - y)).toEqual([-200, -100]);
+  });
+
+  it("keeps the signed amount and the original currency of each transaction", async () => {
+    await importTransactions(userId, [row("2026-08-05", -1000, "USD"), row("2026-08-06", 2500, "EUR")]);
+
+    const found = await findTransactionsInRange(userId, "2026-08-01", "2026-09-01");
+
+    expect(found.map((t) => [t.amountCents, t.currency])).toEqual([
+      [2500, "EUR"],
+      [-1000, "USD"],
+    ]);
+  });
+
+  it("returns an empty list when nothing is in the range", async () => {
+    await importTransactions(userId, [SALARY]);
+
+    expect(await findTransactionsInRange(userId, "2026-09-01", "2026-10-01")).toEqual([]);
+  });
+
+  it("never returns another user's transactions", async () => {
+    await importTransactions(userId, [SALARY]);
+    await importTransactions(otherUserId, [{ ...COFFEE, date: "2026-08-15" }]);
+
+    const found = await findTransactionsInRange(userId, "2026-08-01", "2026-09-01");
+
+    expect(found.map((t) => t.date)).toEqual(["2026-08-01"]);
   });
 });
 
