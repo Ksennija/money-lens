@@ -252,7 +252,6 @@ describe("App", () => {
   );
 
   it.each([
-    ["/transactions", "Transactions"],
     ["/insights", "Insights"],
     ["/history", "History"],
   ])("shows the %s placeholder to a signed-in user", async (path, title) => {
@@ -265,5 +264,33 @@ describe("App", () => {
     );
 
     expect(await screen.findByRole("heading", { name: title })).not.toBeNull();
+  });
+
+  it("shows the transactions of the latest month on /transactions to a signed-in user", async () => {
+    mockApi({
+      "GET /api/me": [LOGGED_IN_ME],
+      "GET /api/transactions": [
+        {
+          status: 200,
+          body: {
+            code: "transactions",
+            month: "2026-09",
+            transactions: [
+              { id: "1", date: "2026-09-30", counterparty: "Bank", details: "Account fee", amountCents: -490, currency: "EUR" },
+            ],
+          },
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/transactions"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole("heading", { name: "September 2026" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "30.09.2026" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "-€4.90" })).not.toBeNull();
   });
 });

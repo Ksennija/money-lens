@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import TransactionsPage from "./pages/TransactionsPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
 import AuthenticatedPage from "./pages/AuthenticatedPage";
 import LoginPage from "./pages/LoginPage";
@@ -13,8 +14,8 @@ type SessionState =
   | { status: "logged-out" }
   | { status: "logged-in"; user: CurrentUser };
 
+// Private pages that only have a title for now.
 const PRIVATE_PLACEHOLDERS = [
-  { path: "/transactions", title: "Transactions" },
   { path: "/insights", title: "Insights" },
   { path: "/history", title: "History" },
 ];
@@ -60,6 +61,7 @@ function App() {
             path="/overview"
             element={<AuthenticatedPage user={session.user} />}
           />
+          <Route path="/transactions" element={<TransactionsPage />} />
           {PRIVATE_PLACEHOLDERS.map(({ path, title }) => (
             <Route
               key={path}
@@ -89,6 +91,7 @@ function App() {
           }
         />
         <Route path="/overview" element={<Navigate to="/signin" replace />} />
+        <Route path="/transactions" element={<Navigate to="/signin" replace />} />
         {PRIVATE_PLACEHOLDERS.map(({ path }) => (
           <Route
             key={path}
