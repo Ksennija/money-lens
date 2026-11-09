@@ -1,8 +1,4 @@
-import {
-  findLatestTransactionDate,
-  findTransactionAmounts,
-  type TransactionAmount,
-} from '../db/transactionRepository.js';
+import { findTransactionAmounts, type TransactionAmount } from '../db/transactionRepository.js';
 import {
   compareTotals,
   monthBounds,
@@ -13,6 +9,7 @@ import {
 } from '../domain/comparison/compareMonths.js';
 import { convertAmountCents } from '../domain/currency/convertAmount.js';
 import { getRates } from './currencyConversionService.js';
+import { resolveMonth } from './resolveMonth.js';
 import type { FetchRates } from './frankfurterClient.js';
 
 export type MonthlyComparison = {
@@ -30,14 +27,6 @@ function mostCommonCurrency(rows: TransactionAmount[]): string | undefined {
   const counts = new Map<string, number>();
   for (const { currency } of rows) counts.set(currency, (counts.get(currency) ?? 0) + 1);
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
-}
-
-// Without a month, the month of the user's most recent transaction is used, because imported
-// bank files are usually for past months. A user with no transactions gets the current month.
-async function resolveMonth(userId: string, month: string | undefined): Promise<string> {
-  if (month) return month;
-  const latest = await findLatestTransactionDate(userId);
-  return (latest ?? new Date().toISOString()).slice(0, 7);
 }
 
 // Every transaction is converted with the rate of its own day, so the totals of a month do not
