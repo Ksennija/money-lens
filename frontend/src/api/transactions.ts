@@ -5,6 +5,7 @@ export type Transaction = {
   details: string;
   amountCents: number; // negative is money out
   currency: string; // the currency the transaction was imported in
+  category: string; // category id, e.g. "eating-out"
 };
 
 export type TransactionsResult =
@@ -25,7 +26,8 @@ function toTransaction(value: unknown): Transaction | null {
     typeof item?.counterparty !== 'string' ||
     typeof item?.details !== 'string' ||
     typeof item?.amountCents !== 'number' ||
-    typeof item?.currency !== 'string'
+    typeof item?.currency !== 'string' ||
+    typeof item?.category !== 'string'
   ) {
     return null;
   }
@@ -36,6 +38,7 @@ function toTransaction(value: unknown): Transaction | null {
     details: item.details,
     amountCents: item.amountCents,
     currency: item.currency,
+    category: item.category,
   };
 }
 

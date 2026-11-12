@@ -18,6 +18,7 @@ const ITEM = {
   details: "Account fee",
   amountCents: -490,
   currency: "EUR",
+  category: "fees",
 };
 const BODY = { code: "transactions", month: "2026-09", transactions: [ITEM] };
 const SERVER_ERROR = { ok: false, code: "server-error", message: "Something went wrong" };
@@ -75,6 +76,13 @@ describe("getTransactions", () => {
 
   it("returns a generic server error when a transaction has the wrong shape", async () => {
     mockFetchResponse(200, { ...BODY, transactions: [{ ...ITEM, amountCents: "-490" }] });
+
+    expect(await getTransactions()).toEqual(SERVER_ERROR);
+  });
+
+  it("returns a generic server error when a transaction has no category", async () => {
+    const { category: _category, ...withoutCategory } = ITEM;
+    mockFetchResponse(200, { ...BODY, transactions: [withoutCategory] });
 
     expect(await getTransactions()).toEqual(SERVER_ERROR);
   });

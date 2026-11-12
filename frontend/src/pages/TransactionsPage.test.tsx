@@ -16,7 +16,7 @@ function mockApi(routes: Record<string, { status: number; body: unknown }[]>) {
 }
 
 function tx(date: string, amountCents: number, counterparty: string, details: string, currency = "EUR") {
-  return { id: `${date}-${counterparty}-${amountCents}`, date, counterparty, details, amountCents, currency };
+  return { id: `${date}-${counterparty}-${amountCents}`, date, counterparty, details, amountCents, currency, category: "other" };
 }
 
 function list(month: string, transactions: ReturnType<typeof tx>[]) {

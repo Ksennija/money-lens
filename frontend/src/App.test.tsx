@@ -276,7 +276,7 @@ describe("App", () => {
             code: "transactions",
             month: "2026-09",
             transactions: [
-              { id: "1", date: "2026-09-30", counterparty: "Bank", details: "Account fee", amountCents: -490, currency: "EUR" },
+              { id: "1", date: "2026-09-30", counterparty: "Bank", details: "Account fee", amountCents: -490, currency: "EUR", category: "fees" },
             ],
           },
         },
