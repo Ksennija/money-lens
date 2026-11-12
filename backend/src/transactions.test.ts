@@ -55,10 +55,42 @@ describe("GET /api/transactions", () => {
     expect(res.body.code).toBe("transactions");
     expect(res.body.month).toBe("2026-08");
     expect(res.body.transactions).toEqual([
-      { id: expect.any(String), date: "2026-08-31", counterparty: "Bank", details: "Test", amountCents: -100, currency: "EUR" },
-      { id: expect.any(String), date: "2026-08-15", counterparty: "Rewe", details: "Test", amountCents: -1500, currency: "EUR" },
-      { id: expect.any(String), date: "2026-08-01", counterparty: "Acme", details: "Test", amountCents: 30000, currency: "EUR" },
+      { id: expect.any(String), date: "2026-08-31", counterparty: "Bank", details: "Test", amountCents: -100, currency: "EUR", category: "other" },
+      { id: expect.any(String), date: "2026-08-15", counterparty: "Rewe", details: "Test", amountCents: -1500, currency: "EUR", category: "groceries" },
+      { id: expect.any(String), date: "2026-08-01", counterparty: "Acme", details: "Test", amountCents: 30000, currency: "EUR", category: "income" },
     ]);
+  });
+
+  it("gives every transaction a category from the rules", async () => {
+    const { agent, userId } = await loggedInAgent(USER_EMAIL);
+    const row = (counterparty: string, details: string, amountCents: number) => ({
+      ...tx("2026-08-10", amountCents, "EUR", counterparty),
+      details,
+      userId,
+    });
+    await prisma.transaction.createMany({
+      data: [
+        row("Café Luna", "Card payment coffee", -380),
+        row("Amazon", "Refund", 1899),
+        row("Anna Weber", "Transfer", 2500),
+        row("Anna Weber", "Transfer dinner split", -2500),
+      ],
+    });
+
+    const res = await agent.get("/api/transactions?month=2026-08");
+
+    const categories = Object.fromEntries(
+      res.body.transactions.map((t: { details: string; amountCents: number; category: string }) => [
+        `${t.details}|${t.amountCents}`,
+        t.category,
+      ]),
+    );
+    expect(categories).toEqual({
+      "Card payment coffee|-380": "eating-out",
+      "Refund|1899": "shopping",
+      "Transfer|2500": "income",
+      "Transfer dinner split|-2500": "other",
+    });
   });
 
   it("includes the first and last day of the month and excludes the days around it", async () => {
