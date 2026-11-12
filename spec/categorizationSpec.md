@@ -11,7 +11,6 @@ Money Lens exists to show someone who earns enough why they do not save. For tha
 - A fixed list of categories and an ordered list of keyword rules, kept in the backend
 - A pure function that returns exactly one category for any transaction
 - `GET /api/transactions` returns a `category` for every transaction
-- The Transactions table gets a Category column
 - Unmatched transactions get the category "other", except unknown deposits (a positive amount that matches no rule), which get "income"
 - The categories are computed on read, not stored
 - Matching is by whole words, in lower case (case and accents ignored)
@@ -78,7 +77,7 @@ const rules = [
 ## Behaviour
 
 - Categories are worked out when the transactions are read, not stored. Changing a rule changes the category of all transactions, including already imported ones
-- The category is shown in a new last column "Category" of the Transactions table, using the "Shown as" name above, e.g. "Eating out"
+- The category is not shown on the Transactions page in this ticket. The API returns it, and the category filter (next ticket) uses it
 - The import, the comparison and the Overview are not changed
 
 ## Backend change
@@ -98,7 +97,7 @@ const rules = [
 ## Frontend changes
 
 - `frontend/src/api/transactions.ts`: `Transaction` gets `category: string`. A response whose transaction has no text `category` is treated as a malformed body (generic error), like the other fields
-- `frontend/src/pages/TransactionsPage.tsx`: a "Category" column. The label is made from the id ("eating-out" shown as "Eating out")
+- `frontend/src/pages/TransactionsPage.tsx`: no change in this ticket
 
 ## Error cases
 
@@ -157,7 +156,6 @@ Backend, API (`transactions.test.ts`): each transaction in the response has a `c
 Frontend:
 
 - `api/transactions.test.ts`: `category` is returned, and a transaction without it is a generic error
-- `TransactionsPage.test.tsx`: a Category column with readable labels ("Eating out", "Other")
 - `App.test.tsx`: the existing `/transactions` test still passes
 
 ## Assumptions
@@ -186,5 +184,4 @@ Frontend:
 
 ## Decisions beyond the ticket
 
-- The category column is part of this ticket, so the result is visible before the filter exists
 - The category id for unmatched transactions is "other" (`CLAUDE.md` is fixed to match)
