@@ -15,8 +15,15 @@ function mockApi(routes: Record<string, { status: number; body: unknown }[]>) {
   return fetchMock;
 }
 
-function tx(date: string, amountCents: number, counterparty: string, details: string, currency = "EUR") {
-  return { id: `${date}-${counterparty}-${amountCents}`, date, counterparty, details, amountCents, currency, category: "other" };
+function tx(
+  date: string,
+  amountCents: number,
+  counterparty: string,
+  details: string,
+  currency = "EUR",
+  category = "other"
+) {
+  return { id: `${date}-${counterparty}-${amountCents}`, date, counterparty, details, amountCents, currency, category };
 }
 
 function list(month: string, transactions: ReturnType<typeof tx>[]) {
@@ -29,6 +36,11 @@ const SEPTEMBER = list("2026-09", [
   tx("2026-09-02", -7218, "REWE Markt", "Card payment groceries"),
 ]);
 const AUGUST = list("2026-08", [tx("2026-08-29", -1425, "Pharmacy Apotheke", "Card payment")]);
+const MIXED_SEPTEMBER = list("2026-09", [
+  tx("2026-09-30", -490, "Bank", "Account fee", "EUR", "fees"),
+  tx("2026-09-12", -3100, "Lidl", "Card payment groceries", "EUR", "groceries"),
+  tx("2026-09-02", -7218, "REWE Markt", "Card payment groceries", "EUR", "groceries"),
+]);
 const EMPTY_JULY = list("2026-07", []);
 const NOTHING_AT_ALL = list("2026-11", []);
 const SERVER_ERROR = { status: 500, body: { code: "server-error", message: "Something went wrong" } };
@@ -73,6 +85,84 @@ describe("TransactionsPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Transactions" })).not.toBeNull();
     const headings = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headings).toEqual(["Date", "Counterparty", "Details", "Amount"]);
+  });
+
+  describe("category filter", () => {
+    const filter = () => screen.getByRole("combobox", { name: "Filter by category" }) as HTMLSelectElement;
+    const counterparties = () => bodyRows().map((row) => within(row).getAllByRole("cell")[1].textContent);
+
+    it("has a dropdown that starts on All categories and lists the 12 categories", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+
+      renderPage();
+      await screen.findByRole("table");
+
+      expect(filter().value).toBe("");
+      const options = within(filter()).getAllByRole("option").map((o) => o.textContent);
+      expect(options).toEqual([
+        "All categories", "Income", "Housing", "Utilities", "Groceries", "Eating out", "Subscriptions",
+        "Health", "Transport", "Shopping", "Entertainment", "Fees", "Other",
+      ]);
+      expect(counterparties()).toEqual(["Bank", "Lidl", "REWE Markt"]);
+    });
+
+    it("shows only the transactions of the chosen category, in the same order", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await userEvent.selectOptions(filter(), "Groceries");
+
+      expect(counterparties()).toEqual(["Lidl", "REWE Markt"]);
+    });
+
+    it("shows everything again when All categories is chosen", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+      await userEvent.selectOptions(filter(), "Groceries");
+
+      await userEvent.selectOptions(filter(), "All categories");
+
+      expect(counterparties()).toEqual(["Bank", "Lidl", "REWE Markt"]);
+    });
+
+    it("does not request the transactions again when the filter changes", async () => {
+      const fetchMock = mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await userEvent.selectOptions(filter(), "Fees");
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("finds a transaction with an unknown category only under All categories", async () => {
+      mockApi({
+        "/api/transactions": [
+          list("2026-09", [
+            tx("2026-09-03", -500, "Vet", "Checkup", "EUR", "pet-care"),
+            tx("2026-09-02", -700, "Lidl", "Card payment", "EUR", "groceries"),
+          ]),
+        ],
+      });
+      renderPage();
+      await screen.findByRole("table");
+      expect(counterparties()).toEqual(["Vet", "Lidl"]);
+
+      await userEvent.selectOptions(filter(), "Groceries");
+
+      expect(counterparties()).toEqual(["Lidl"]);
+    });
+
+    it("is not shown when the user has no transactions at all", async () => {
+      mockApi({ "/api/transactions": [NOTHING_AT_ALL] });
+
+      renderPage();
+      await screen.findByText(/no transactions yet/i);
+
+      expect(screen.queryByRole("combobox", { name: "Filter by category" })).toBeNull();
+    });
   });
 
   it("shows dates as DD.MM.YYYY and keeps the order the server sent", async () => {
