@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { getTransactions, type Transaction } from '../api/transactions';
 import MonthNav from '../components/MonthNav';
 import { useMonthNavigation, type MonthResult } from '../hooks/useMonthNavigation';
-import { CATEGORIES } from '../lib/categories';
+import { CATEGORIES, categoryLabel } from '../lib/categories';
 import { formatMonth, previousMonth } from '../lib/months';
 
 type MonthTransactions = { month: string; transactions: Transaction[] };
@@ -43,6 +43,10 @@ export default function TransactionsPage() {
 
   const shown = !noTransactions && (view.status === 'ready' || view.status === 'loading') ? view.data : null;
   const busy = view.status === 'loading';
+
+  const visible =
+    view.status === 'ready' ? visibleTransactions(view.data.transactions, selectedCategories) : [];
+  const monthHasTransactions = view.status === 'ready' && view.data.transactions.length > 0;
 
   return (
     <main>
@@ -99,7 +103,11 @@ export default function TransactionsPage() {
         <p>{`No transactions in ${formatMonth(view.data.month)}.`}</p>
       )}
 
-      {view.status === 'ready' && view.data.transactions.length > 0 && (
+      {monthHasTransactions && visible.length === 0 && (
+        <p>{`No transactions in ${categoryLabel(selectedCategories[0])} in ${formatMonth(view.data.month)}.`}</p>
+      )}
+
+      {visible.length > 0 && (
         <table>
           <thead>
             <tr>
@@ -110,7 +118,7 @@ export default function TransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {visibleTransactions(view.data.transactions, selectedCategories).map((t) => (
+            {visible.map((t) => (
               <tr key={t.id}>
                 <td>{formatDate(t.date)}</td>
                 <td>{t.counterparty}</td>

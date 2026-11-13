@@ -41,6 +41,10 @@ const MIXED_SEPTEMBER = list("2026-09", [
   tx("2026-09-12", -3100, "Lidl", "Card payment groceries", "EUR", "groceries"),
   tx("2026-09-02", -7218, "REWE Markt", "Card payment groceries", "EUR", "groceries"),
 ]);
+const MIXED_AUGUST = list("2026-08", [
+  tx("2026-08-29", -1425, "Pharmacy Apotheke", "Card payment", "EUR", "health"),
+  tx("2026-08-20", -2310, "Lidl", "Card payment groceries", "EUR", "groceries"),
+]);
 const EMPTY_JULY = list("2026-07", []);
 const NOTHING_AT_ALL = list("2026-11", []);
 const SERVER_ERROR = { status: 500, body: { code: "server-error", message: "Something went wrong" } };
@@ -152,6 +156,96 @@ describe("TransactionsPage", () => {
 
       await userEvent.selectOptions(filter(), "Groceries");
 
+      expect(counterparties()).toEqual(["Lidl"]);
+    });
+
+    it("says there are no transactions in the category and keeps the dropdown and the month buttons", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await userEvent.selectOptions(filter(), "Other");
+
+      expect(screen.getByText("No transactions in Other in September 2026.")).not.toBeNull();
+      expect(screen.queryByRole("table")).toBeNull();
+      expect(filter().value).toBe("other");
+      expect(button(/previous month/i)).not.toBeNull();
+    });
+
+    it("keeps the chosen category when going to the previous and the next month", async () => {
+      mockApi({
+        "/api/transactions": [MIXED_SEPTEMBER],
+        "/api/transactions?month=2026-08": [MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findByRole("table");
+      await userEvent.selectOptions(filter(), "Groceries");
+
+      await userEvent.click(button(/previous month/i));
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(filter().value).toBe("groceries");
+      expect(counterparties()).toEqual(["Lidl"]);
+
+      mockApi({ "/api/transactions?month=2026-09": [MIXED_SEPTEMBER] });
+      await userEvent.click(button(/next month/i));
+      await screen.findByRole("heading", { name: "September 2026" });
+      expect(filter().value).toBe("groceries");
+      expect(counterparties()).toEqual(["Lidl", "REWE Markt"]);
+    });
+
+    it("says there are no transactions in the category when the other month has none", async () => {
+      mockApi({
+        "/api/transactions": [MIXED_SEPTEMBER],
+        "/api/transactions?month=2026-08": [MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findByRole("table");
+      await userEvent.selectOptions(filter(), "Fees");
+
+      await userEvent.click(button(/previous month/i));
+
+      expect(await screen.findByText("No transactions in Fees in August 2026.")).not.toBeNull();
+      expect(filter().value).toBe("fees");
+    });
+
+    it("keeps the dropdown and the chosen category while the next month loads", async () => {
+      let release: (value: unknown) => void = () => {};
+      const pending = new Promise((resolve) => {
+        release = resolve;
+      });
+      globalThis.fetch = jest.fn(async (url: string) => {
+        if (url === "/api/transactions") return { ok: true, status: 200, json: async () => MIXED_SEPTEMBER.body };
+        await pending;
+        return { ok: true, status: 200, json: async () => MIXED_AUGUST.body };
+      }) as unknown as typeof fetch;
+      renderPage();
+      await screen.findByRole("table");
+      await userEvent.selectOptions(filter(), "Groceries");
+
+      await userEvent.click(button(/previous month/i));
+
+      expect(screen.getByRole("status").textContent).toMatch(/loading/i);
+      expect(filter().value).toBe("groceries");
+      release(undefined);
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(counterparties()).toEqual(["Lidl"]);
+    });
+
+    it("keeps the chosen category after an error and Retry", async () => {
+      mockApi({
+        "/api/transactions": [MIXED_SEPTEMBER],
+        "/api/transactions?month=2026-08": [SERVER_ERROR, MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findByRole("table");
+      await userEvent.selectOptions(filter(), "Groceries");
+      await userEvent.click(button(/previous month/i));
+      await screen.findByRole("alert");
+
+      await userEvent.click(button(/retry/i));
+
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(filter().value).toBe("groceries");
       expect(counterparties()).toEqual(["Lidl"]);
     });
 
