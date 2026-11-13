@@ -92,43 +92,72 @@ describe("TransactionsPage", () => {
   });
 
   describe("category filter", () => {
-    const filter = () => screen.getByRole("combobox", { name: "Filter by category" }) as HTMLSelectElement;
+    // The filter button is the only button that says whether it is expanded.
+    const filterButton = () =>
+      (screen.queryByRole("button", { expanded: false }) ?? screen.getByRole("button", { expanded: true })) as HTMLButtonElement;
     const counterparties = () => bodyRows().map((row) => within(row).getAllByRole("cell")[1].textContent);
+    async function toggleCategory(name: string) {
+      if (screen.queryAllByRole("checkbox").length === 0) await userEvent.click(filterButton());
+      await userEvent.click(screen.getByRole("checkbox", { name }));
+    }
 
-    it("has a dropdown that starts on All categories and lists the 12 categories", async () => {
+    it("starts on All categories with the panel closed and every row shown", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
 
       renderPage();
       await screen.findByRole("table");
 
-      expect(filter().value).toBe("");
-      const options = within(filter()).getAllByRole("option").map((o) => o.textContent);
-      expect(options).toEqual([
-        "All categories", "Income", "Housing", "Utilities", "Groceries", "Eating out", "Subscriptions",
-        "Health", "Transport", "Shopping", "Entertainment", "Fees", "Other",
-      ]);
+      expect(filterButton().textContent).toBe("All categories");
+      expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
       expect(counterparties()).toEqual(["Bank", "Lidl", "REWE Markt"]);
     });
 
-    it("shows only the transactions of the chosen category, in the same order", async () => {
+    it("shows only the transactions of a checked category, in the same order", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
       await screen.findByRole("table");
 
-      await userEvent.selectOptions(filter(), "Groceries");
+      await toggleCategory("Groceries");
 
       expect(counterparties()).toEqual(["Lidl", "REWE Markt"]);
+      expect(filterButton().textContent).toBe("Groceries");
     });
 
-    it("shows everything again when All categories is chosen", async () => {
+    it("shows the union of two checked categories in the original order", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
       await screen.findByRole("table");
-      await userEvent.selectOptions(filter(), "Groceries");
 
-      await userEvent.selectOptions(filter(), "All categories");
+      await toggleCategory("Fees");
+      await toggleCategory("Groceries");
 
       expect(counterparties()).toEqual(["Bank", "Lidl", "REWE Markt"]);
+      expect(filterButton().textContent).toBe("Groceries, Fees");
+    });
+
+    it("shows everything again when the last category is unchecked", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+      await toggleCategory("Groceries");
+
+      await toggleCategory("Groceries");
+
+      expect(counterparties()).toEqual(["Bank", "Lidl", "REWE Markt"]);
+      expect(filterButton().textContent).toBe("All categories");
+    });
+
+    it("shows everything again after Clear", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+      await toggleCategory("Groceries");
+      await toggleCategory("Fees");
+
+      await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+
+      expect(counterparties()).toEqual(["Bank", "Lidl", "REWE Markt"]);
+      expect(filterButton().textContent).toBe("All categories");
     });
 
     it("does not request the transactions again when the filter changes", async () => {
@@ -136,12 +165,12 @@ describe("TransactionsPage", () => {
       renderPage();
       await screen.findByRole("table");
 
-      await userEvent.selectOptions(filter(), "Fees");
+      await toggleCategory("Fees");
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it("finds a transaction with an unknown category only under All categories", async () => {
+    it("shows a transaction with an unknown category only while nothing is checked", async () => {
       mockApi({
         "/api/transactions": [
           list("2026-09", [
@@ -154,42 +183,45 @@ describe("TransactionsPage", () => {
       await screen.findByRole("table");
       expect(counterparties()).toEqual(["Vet", "Lidl"]);
 
-      await userEvent.selectOptions(filter(), "Groceries");
+      await toggleCategory("Groceries");
 
       expect(counterparties()).toEqual(["Lidl"]);
     });
 
-    it("says there are no transactions in the category and keeps the dropdown and the month buttons", async () => {
+    it("names the checked categories when none matches, and keeps the filter and the month buttons", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
       await screen.findByRole("table");
 
-      await userEvent.selectOptions(filter(), "Other");
-
+      await toggleCategory("Other");
       expect(screen.getByText("No transactions in Other in September 2026.")).not.toBeNull();
+
+      await toggleCategory("Health");
+      expect(screen.getByText("No transactions in Health and Other in September 2026.")).not.toBeNull();
       expect(screen.queryByRole("table")).toBeNull();
-      expect(filter().value).toBe("other");
+      expect(filterButton().textContent).toBe("Health, Other");
       expect(button(/previous month/i)).not.toBeNull();
     });
 
-    it("keeps the chosen category when going to the previous and the next month", async () => {
+    it("keeps the checked categories when going to the previous and the next month", async () => {
       mockApi({
         "/api/transactions": [MIXED_SEPTEMBER],
         "/api/transactions?month=2026-08": [MIXED_AUGUST],
       });
       renderPage();
       await screen.findByRole("table");
-      await userEvent.selectOptions(filter(), "Groceries");
+      await toggleCategory("Groceries");
+      await toggleCategory("Health");
 
       await userEvent.click(button(/previous month/i));
       await screen.findByRole("heading", { name: "August 2026" });
-      expect(filter().value).toBe("groceries");
-      expect(counterparties()).toEqual(["Lidl"]);
+      expect(filterButton().textContent).toBe("Groceries, Health");
+      expect(counterparties()).toEqual(["Pharmacy Apotheke", "Lidl"]);
 
       mockApi({ "/api/transactions?month=2026-09": [MIXED_SEPTEMBER] });
       await userEvent.click(button(/next month/i));
       await screen.findByRole("heading", { name: "September 2026" });
-      expect(filter().value).toBe("groceries");
+      expect(filterButton().textContent).toBe("Groceries, Health");
       expect(counterparties()).toEqual(["Lidl", "REWE Markt"]);
     });
 
@@ -200,15 +232,15 @@ describe("TransactionsPage", () => {
       });
       renderPage();
       await screen.findByRole("table");
-      await userEvent.selectOptions(filter(), "Fees");
+      await toggleCategory("Fees");
 
       await userEvent.click(button(/previous month/i));
 
       expect(await screen.findByText("No transactions in Fees in August 2026.")).not.toBeNull();
-      expect(filter().value).toBe("fees");
+      expect(filterButton().textContent).toBe("Fees");
     });
 
-    it("keeps the dropdown and the chosen category while the next month loads", async () => {
+    it("keeps the filter and the checked categories while the next month loads", async () => {
       let release: (value: unknown) => void = () => {};
       const pending = new Promise((resolve) => {
         release = resolve;
@@ -220,32 +252,32 @@ describe("TransactionsPage", () => {
       }) as unknown as typeof fetch;
       renderPage();
       await screen.findByRole("table");
-      await userEvent.selectOptions(filter(), "Groceries");
+      await toggleCategory("Groceries");
 
       await userEvent.click(button(/previous month/i));
 
       expect(screen.getByRole("status").textContent).toMatch(/loading/i);
-      expect(filter().value).toBe("groceries");
+      expect(filterButton().textContent).toBe("Groceries");
       release(undefined);
       await screen.findByRole("heading", { name: "August 2026" });
       expect(counterparties()).toEqual(["Lidl"]);
     });
 
-    it("keeps the chosen category after an error and Retry", async () => {
+    it("keeps the checked categories after an error and Retry", async () => {
       mockApi({
         "/api/transactions": [MIXED_SEPTEMBER],
         "/api/transactions?month=2026-08": [SERVER_ERROR, MIXED_AUGUST],
       });
       renderPage();
       await screen.findByRole("table");
-      await userEvent.selectOptions(filter(), "Groceries");
+      await toggleCategory("Groceries");
       await userEvent.click(button(/previous month/i));
       await screen.findByRole("alert");
 
       await userEvent.click(button(/retry/i));
 
       await screen.findByRole("heading", { name: "August 2026" });
-      expect(filter().value).toBe("groceries");
+      expect(filterButton().textContent).toBe("Groceries");
       expect(counterparties()).toEqual(["Lidl"]);
     });
 
@@ -255,7 +287,7 @@ describe("TransactionsPage", () => {
       renderPage();
       await screen.findByText(/no transactions yet/i);
 
-      expect(screen.queryByRole("combobox", { name: "Filter by category" })).toBeNull();
+      expect(screen.queryByRole("button", { expanded: false })).toBeNull();
     });
   });
 

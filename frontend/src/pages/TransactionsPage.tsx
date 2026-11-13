@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getTransactions, type Transaction } from '../api/transactions';
+import CategoryFilter from '../components/CategoryFilter';
 import MonthNav from '../components/MonthNav';
 import { useMonthNavigation, type MonthResult } from '../hooks/useMonthNavigation';
-import { CATEGORIES, categoryLabel } from '../lib/categories';
+import { describeCategories } from '../lib/categories';
 import { formatMonth, previousMonth } from '../lib/months';
 
 type MonthTransactions = { month: string; transactions: Transaction[] };
@@ -33,8 +34,7 @@ function visibleTransactions(transactions: Transaction[], selectedCategories: st
 
 export default function TransactionsPage() {
   const { view, requested, latestMonth, load } = useMonthNavigation(fetchTransactions);
-  // Category ids to show. Empty means all. It holds at most one for now; a list lets a
-  // multi-select reuse it later.
+  // Category ids to show. Empty means all.
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // The latest month always has a transaction, so an empty answer for it means there are none.
@@ -79,21 +79,7 @@ export default function TransactionsPage() {
             onSelect={load}
           />
           <h2>{formatMonth(shown.month)}</h2>
-          <label>
-            Category{' '}
-            <select
-              aria-label="Filter by category"
-              value={selectedCategories[0] ?? ''}
-              onChange={(e) => setSelectedCategories(e.target.value ? [e.target.value] : [])}
-            >
-              <option value="">All categories</option>
-              {CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <CategoryFilter selected={selectedCategories} onChange={setSelectedCategories} />
         </>
       )}
 
@@ -104,7 +90,7 @@ export default function TransactionsPage() {
       )}
 
       {monthHasTransactions && visible.length === 0 && (
-        <p>{`No transactions in ${categoryLabel(selectedCategories[0])} in ${formatMonth(view.data.month)}.`}</p>
+        <p>{`No transactions in ${describeCategories(selectedCategories)} in ${formatMonth(view.data.month)}.`}</p>
       )}
 
       {visible.length > 0 && (
