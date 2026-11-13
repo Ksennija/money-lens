@@ -24,3 +24,12 @@ export function categoryLabel(id: string): string {
   const words = id.replace(/-/g, ' ');
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
+
+// For a sentence such as "No transactions in Groceries and Fees in September 2026." More than
+// three names would make the sentence too long, so it says "the chosen categories" instead.
+export function describeCategories(ids: string[]): string {
+  if (ids.length > 3) return 'the chosen categories';
+  const labels = ids.map(categoryLabel);
+  if (labels.length <= 1) return labels.join('');
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+}
