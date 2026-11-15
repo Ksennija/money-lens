@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SpendWise — Insights</title><style>
+:root{--ink:#202b27;--muted:#75817b;--line:#e7ebe8;--bg:#f5f7f5;--green:#24483b;--soft:#e9f3ed}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.app{max-width:1100px;margin:32px auto;padding:0 22px 45px}.top{display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid var(--line);border-radius:17px;padding:16px 20px}
+.brand{font-weight:800;font-size:17px}.logo{display:inline-grid;place-items:center;background:var(--green);color:white;border-radius:10px;width:34px;height:34px;margin-right:8px}
+nav{display:flex;gap:24px}nav a{color:var(--muted);text-decoration:none;font-size:14px}nav a.active{color:var(--green);font-weight:800}
+.avatar{background:#edf0ed;border-radius:50%;padding:8px 11px;font-weight:700}.heading{margin:32px 0 20px;display:flex;justify-content:space-between;align-items:end}
+h1{font-size:30px;letter-spacing:-.7px;margin:0 0 4px}h2{font-size:18px;margin:0 0 15px}.sub,.muted{color:var(--muted)}.sub{margin:0}.muted{font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.two{grid-template-columns:repeat(2,1fr)}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px}.label{font-size:13px;color:var(--muted)}.value{font-size:25px;font-weight:800;margin:8px 0}.green{color:#27845b}.red{color:#bd554c}
+.pill{background:var(--soft);color:var(--green);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.section{margin-top:18px}.between{display:flex;justify-content:space-between;align-items:center}.bar{height:8px;background:#edf0ed;border-radius:20px;overflow:hidden;margin-top:7px}.bar span{display:block;height:100%;background:var(--green)}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2f0}.item:last-child{border:0}.grow{flex:1}.ico{width:39px;height:39px;border-radius:11px;background:#f1f4f1;display:grid;place-items:center;color:var(--green);font-size:18px}
+.notice{padding:15px;background:var(--soft);border-radius:12px;color:var(--green);font-size:13px;margin-top:18px}
+button,input,select{font:inherit}input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:white}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:13px;font-weight:700;color:#53615a}
+.btn{background:var(--green);color:white;border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}.filter{border:1px solid var(--line);background:white;border-radius:9px;padding:9px 13px;cursor:pointer}
+@media(max-width:700px){.app{margin:14px auto;padding:0 13px 30px}.top{padding:13px}.heading{margin:23px 0 16px;align-items:start;flex-direction:column;gap:10px}nav{gap:10px}nav a{font-size:12px}.grid,.two{grid-template-columns:1fr 1fr}.card{padding:14px}.value{font-size:20px}}
+@media(max-width:430px){.grid,.two{grid-template-columns:1fr}.avatar{display:none}nav{gap:8px}}
+</style></head><body><main class="app"><header class="top"><div class="brand"><span class="logo">S</span>SpendWise</div><nav><a class="" href="overview.html">Overview</a><a class="" href="transactions.html">Transactions</a><a class="active" href="insights.html">Insights</a><a class="" href="settings.html">Settings</a></nav><div class="avatar">JD</div></header><section class="heading"><div><h1>Insights</h1><p class="sub">Understand what changed and where your money goes</p></div><span class="pill">November 2026</span></section>
+<div class="grid">
+<div class="card"><div class="label">Spent this month</div><div class="value">€1,845.30</div><div class="muted">November 1–30</div></div>
+<div class="card"><div class="label">Change vs. October</div><div class="value red">+8.4%</div><div class="muted">€143.20 more</div></div>
+<div class="card"><div class="label">Largest category</div><div class="value">Housing</div><div class="muted">€850 · 46% of spending</div></div></div>
+<div class="grid two section">
+<div class="card"><h2>Monthly spending</h2><div style="height:180px;display:flex;align-items:end;gap:12px;padding:10px 4px">
+<div class="grow" style="text-align:center"><div style="height:88px;background:#dce8e0;border-radius:7px 7px 0 0"></div><small class="muted">Jun</small></div><div class="grow" style="text-align:center"><div style="height:105px;background:#dce8e0;border-radius:7px 7px 0 0"></div><small class="muted">Jul</small></div><div class="grow" style="text-align:center"><div style="height:98px;background:#dce8e0;border-radius:7px 7px 0 0"></div><small class="muted">Aug</small></div><div class="grow" style="text-align:center"><div style="height:122px;background:#dce8e0;border-radius:7px 7px 0 0"></div><small class="muted">Sep</small></div><div class="grow" style="text-align:center"><div style="height:112px;background:#dce8e0;border-radius:7px 7px 0 0"></div><small class="muted">Oct</small></div><div class="grow" style="text-align:center"><div style="height:150px;background:#24483b;border-radius:7px 7px 0 0"></div><small class="muted">Nov</small></div>
+</div><p class="muted">Illustrative monthly totals, not connected to a bank account.</p></div>
+<div class="card"><h2>Where your money goes</h2>
+<div class="item"><div class="grow"><div class="between"><b>Housing</b><b>46%</b></div><div class="bar"><span style="width:46%"></span></div></div></div><div class="item"><div class="grow"><div class="between"><b>Groceries</b><b>17%</b></div><div class="bar"><span style="width:17%"></span></div></div></div><div class="item"><div class="grow"><div class="between"><b>Shopping</b><b>13%</b></div><div class="bar"><span style="width:13%"></span></div></div></div><div class="item"><div class="grow"><div class="between"><b>Transport</b><b>8%</b></div><div class="bar"><span style="width:8%"></span></div></div></div><div class="item"><div class="grow"><div class="between"><b>Other</b><b>16%</b></div><div class="bar"><span style="width:16%"></span></div></div></div>
+</div></div>
+<div class="card section"><h2>Why did I spend more this month?</h2><div class="notice">Your expenses increased by <b>€143.20</b> compared with October. The biggest changes were:</div>
+<div class="item"><span class="ico">▤</span><div class="grow"><b>Groceries</b><div class="muted">More supermarket visits this month</div></div><b class="red">+€68.40</b></div>
+<div class="item"><span class="ico">◇</span><div class="grow"><b>Shopping</b><div class="muted">One-off online purchases</div></div><b class="red">+€52.00</b></div>
+<div class="item"><span class="ico">☕</span><div class="grow"><b>Restaurants</b><div class="muted">Slightly more café and takeaway spending</div></div><b class="red">+€22.80</b></div>
+<p class="muted">Example insights use fictional data and simple illustrative comparisons.</p></div>
+</main></body></html>

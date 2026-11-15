@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyLens — Transactions</title>
+<style>
+  :root {
+    --ink: #202b27; --muted: #75817b; --line: #e7ebe8; --surface: #ffffff;
+    --canvas: #f5f7f5; --green: #24483b; --green-soft: #e9f3ed;
+    --red: #bd554c; --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font: 15px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  button, input, select { font: inherit; }
+  .app { max-width: 1120px; margin: 36px auto; padding: 0 24px 48px; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:17px 22px; }
+  .brand { display:flex; align-items:center; gap:11px; font-weight:750; font-size:17px; }
+  .logo { width:36px; height:36px; display:grid; place-items:center; color:white; background:var(--green); border-radius:11px; font-weight:800; }
+  nav { display:flex; gap:28px; color:var(--muted); font-size:14px; }
+  nav .active { color:var(--green); font-weight:700; }
+  .avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:#edf0ed; font-weight:700; }
+  .heading { display:flex; justify-content:space-between; align-items:end; margin:34px 0 22px; }
+  h1 { margin:0 0 5px; font-size:30px; letter-spacing:-.8px; }
+  .sub { color:var(--muted); margin:0; }
+  .month { border:1px solid var(--line); background:white; padding:10px 14px; border-radius:10px; color:#45534c; }
+  .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:25px; }
+  .card { background:white; border:1px solid var(--line); border-radius:var(--radius); padding:19px 20px; }
+  .card-label { color:var(--muted); font-size:13px; display:flex; align-items:center; gap:8px; }
+  .symbol { width:28px; height:28px; display:grid; place-items:center; background:#f0f3f0; border-radius:9px; color:var(--green); font-weight:700; }
+  .amount { font-size:25px; font-weight:750; letter-spacing:-.6px; margin-top:11px; }
+  .positive { color:#27845b; }
+  .content { background:white; border:1px solid var(--line); border-radius:18px; overflow:hidden; }
+  .content-head { padding:22px 22px 16px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+  h2 { font-size:18px; margin:0; }
+  .count { color:var(--muted); font-size:13px; }
+  .tools { padding:0 22px 17px; display:flex; flex-wrap:wrap; gap:10px; }
+  .search { flex:1 1 240px; min-width:180px; position:relative; }
+  .search input { width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 13px 11px 38px; outline:none; }
+  .search:before { content:"⌕"; position:absolute; left:14px; top:7px; font-size:23px; color:var(--muted); }
+  select, .filter { border:1px solid var(--line); background:white; border-radius:10px; padding:10px 12px; color:#45534c; }
+  .add { border:0; background:var(--green); color:white; padding:10px 16px; border-radius:10px; cursor:pointer; font-weight:650; }
+  .tabs { display:flex; gap:8px; padding:0 22px 17px; border-bottom:1px solid var(--line); }
+  .tab { border:0; border-radius:30px; padding:7px 14px; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; }
+  .tab.active { background:var(--green-soft); color:var(--green); font-weight:700; }
+  .day { padding:18px 22px 8px; color:var(--muted); font-size:11px; font-weight:750; letter-spacing:.7px; }
+  .transaction { display:flex; align-items:center; gap:13px; padding:13px 22px; border-bottom:1px solid #f0f2f0; }
+  .transaction:last-child { border-bottom:0; }
+  .merchant-icon { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:#f1f4f1; color:var(--green); font-size:18px; }
+  .details { flex:1; min-width:0; }
+  .merchant { font-weight:700; }
+  .meta { color:var(--muted); font-size:12px; margin-top:3px; }
+  .money { font-weight:750; white-space:nowrap; }
+  .money.income { color:#27845b; }
+  .empty { display:none; padding:32px; text-align:center; color:var(--muted); }
+  .foot { color:var(--muted); font-size:12px; padding:15px 22px; border-top:1px solid var(--line); }
+  dialog { border:0; border-radius:18px; padding:24px; width:min(440px, calc(100% - 30px)); box-shadow:0 24px 80px #17251d33; }
+  dialog::backdrop { background:#15231dcc; }
+  .modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .close { border:0; background:transparent; font-size:23px; cursor:pointer; color:var(--muted); }
+  .field { display:grid; gap:6px; margin:13px 0; }
+  .field label { font-size:13px; font-weight:650; color:#53615a; }
+  .field input, .field select { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; background:white; }
+  .type-switch { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .type-switch button { border:1px solid var(--line); border-radius:10px; padding:10px; background:white; cursor:pointer; }
+  .type-switch button.selected { border-color:var(--green); background:var(--green-soft); color:var(--green); font-weight:700; }
+  .submit { width:100%; margin-top:12px; }
+  @media (max-width:700px) {
+    .app { margin:16px auto; padding:0 13px 30px; }
+    .topbar { padding:13px 15px; } nav { gap:13px; font-size:12px; }
+    .heading { align-items:start; flex-direction:column; gap:13px; margin:25px 0 17px; }
+    h1 { font-size:26px; } .summary { gap:8px; }
+    .card { padding:13px 11px; } .card-label { font-size:11px; gap:5px; }
+    .symbol { width:23px; height:23px; } .amount { font-size:18px; }
+    .content-head { padding:18px 15px 13px; } .tools,.tabs { padding-left:15px; padding-right:15px; }
+    .transaction { padding:12px 15px; gap:10px; } .merchant-icon { width:37px; height:37px; }
+    .day { padding-left:15px; } .money { font-size:13px; }
+  }
+  @media (max-width:420px) { nav { gap:9px; } nav span:last-child { display:none; } .amount { font-size:16px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">M</div> MoneyLens</div>
+    <nav><span>Overview</span><span class="active">Transactions</span><span>Insights</span><span>Settings</span></nav>
+    <div class="avatar">JD</div>
+  </header>
+
+  <section class="heading">
+    <div><h1>Transactions</h1><p class="sub">Manage and track your money</p></div>
+    <div class="month">November 2026&nbsp; ▾</div>
+  </section>
+
+  <section class="summary">
+    <article class="card"><div class="card-label"><span class="symbol">↙</span> Income</div><div class="amount positive">€3,200.00</div></article>
+    <article class="card"><div class="card-label"><span class="symbol">↗</span> Expenses</div><div class="amount">€1,845.30</div></article>
+    <article class="card"><div class="card-label"><span class="symbol">◈</span> Balance</div><div class="amount positive">€1,354.70</div></article>
+  </section>
+
+  <main class="content">
+    <div class="content-head"><h2>All transactions</h2><span class="count" id="count">24 transactions</span></div>
+    <div class="tools">
+      <div class="search"><input id="search" type="search" placeholder="Search merchant or description…" aria-label="Search transactions"></div>
+      <select id="category" aria-label="Filter by category"><option value="">All categories</option><option>Groceries</option><option>Restaurants</option><option>Housing</option><option>Transport</option><option>Income</option><option>Shopping</option></select>
+      <button class="filter" id="dateFilter" type="button">☷ Filters</button>
+      <button class="add" id="openModal" type="button">＋ Add transaction</button>
+    </div>
+    <div class="tabs" role="group" aria-label="Transaction type">
+      <button class="tab active" data-type="all">All</button>
+      <button class="tab" data-type="income">Income</button>
+      <button class="tab" data-type="expense">Expenses</button>
+    </div>
+    <div id="transactions">
+      <div class="day">TODAY · NOV 11</div>
+      <div class="transaction" data-type="expense" data-category="Groceries"><div class="merchant-icon">▤</div><div class="details"><div class="merchant">REWE</div><div class="meta">Groceries · 10:24</div></div><div class="money">−€42.50</div></div>
+      <div class="transaction" data-type="expense" data-category="Restaurants"><div class="merchant-icon">☕</div><div class="details"><div class="merchant">Coffee Fellows</div><div class="meta">Restaurants · 08:45</div></div><div class="money">−€4.80</div></div>
+      <div class="day">NOV 10</div>
+      <div class="transaction" data-type="expense" data-category="Housing"><div class="merchant-icon">⌂</div><div class="details"><div class="merchant">Monthly Rent</div><div class="meta">Housing · 09:00</div></div><div class="money">−€850.00</div></div>
+      <div class="transaction" data-type="income" data-category="Income"><div class="merchant-icon">↗</div><div class="details"><div class="merchant">Salary</div><div class="meta">Income · 08:00</div></div><div class="money income">+€3,200.00</div></div>
+      <div class="day">NOV 09</div>
+      <div class="transaction" data-type="expense" data-category="Transport"><div class="merchant-icon">▰</div><div class="details"><div class="merchant">Deutschlandticket</div><div class="meta">Transport · 07:30</div></div><div class="money">−€58.00</div></div>
+      <div class="transaction" data-type="expense" data-category="Shopping"><div class="merchant-icon">◇</div><div class="details"><div class="merchant">Online purchase</div><div class="meta">Shopping · 18:12</div></div><div class="money">−€36.99</div></div>
+    </div>
+    <div class="empty" id="empty">No transactions match your search.</div>
+    <div class="foot">Showing sample transactions · Illustrative data only</div>
+  </main>
+</div>
+
+<dialog id="transactionModal">
+  <div class="modal-head"><h2>Add transaction</h2><button class="close" id="closeModal" aria-label="Close">×</button></div>
+  <form id="transactionForm">
+    <div class="field"><label>Transaction type</label><div class="type-switch"><button type="button" class="selected" data-kind="expense">Expense</button><button type="button" data-kind="income">Income</button></div></div>
+    <input type="hidden" id="kind" value="expense">
+    <div class="field"><label for="amount">Amount (€)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required></div>
+    <div class="field"><label for="description">Description / merchant</label><input id="description" maxlength="80" placeholder="e.g. Supermarket" required></div>
+    <div class="field"><label for="newCategory">Category</label><select id="newCategory"><option>Groceries</option><option>Restaurants</option><option>Housing</option><option>Transport</option><option>Shopping</option><option>Income</option><option>Other</option></select></div>
+    <div class="field"><label for="date">Date</label><input id="date" type="date" value="2026-11-11" required></div>
+    <button class="add submit" type="submit">Save transaction</button>
+  </form>
+</dialog>
+
+<script>
+  const modal = document.getElementById('transactionModal');
+  document.getElementById('openModal').addEventListener('click', () => modal.showModal());
+  document.getElementById('closeModal').addEventListener('click', () => modal.close());
+  let activeType = 'all';
+  document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); activeType = btn.dataset.type; filterRows();
+  }));
+  document.querySelectorAll('[data-kind]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-kind]').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected'); document.getElementById('kind').value = btn.dataset.kind;
+  }));
+  document.getElementById('search').addEventListener('input', filterRows);
+  document.getElementById('category').addEventListener('change', filterRows);
+  document.getElementById('dateFilter').addEventListener('click', () => {
+    document.getElementById('category').focus();
+  });
+  function filterRows() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const category = document.getElementById('category').value;
+    let visible = 0;
+    document.querySelectorAll('.transaction').forEach(row => {
+      const matches = row.textContent.toLowerCase().includes(q) &&
+        (!category || row.dataset.category === category) &&
+        (activeType === 'all' || row.dataset.type === activeType);
+      row.style.display = matches ? 'flex' : 'none';
+      if (matches) visible++;
+    });
+    document.querySelectorAll('.day').forEach(day => {
+      let next = day.nextElementSibling, hasRows = false;
+      while (next && !next.classList.contains('day')) {
+        if (next.classList.contains('transaction') && next.style.display !== 'none') hasRows = true;
+        next = next.nextElementSibling;
+      }
+      day.style.display = hasRows ? 'block' : 'none';
+    });
+    document.getElementById('empty').style.display = visible ? 'none' : 'block';
+    document.getElementById('count').textContent = visible + ' shown';
+  }
+  document.getElementById('transactionForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const type = document.getElementById('kind').value;
+    const amount = Number(document.getElementById('amount').value);
+    const description = document.getElementById('description').value.trim();
+    const category = document.getElementById('newCategory').value;
+    const date = document.getElementById('date').value;
+    if (!amount || !description || !date) return;
+    const row = document.createElement('div');
+    row.className = 'transaction';
+    row.dataset.type = type; row.dataset.category = category;
+    const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-GB', {day:'2-digit', month:'short'}).toUpperCase();
+    row.innerHTML = '<div class="merchant-icon">' + (type === 'income' ? '↗' : '•') + '</div><div class="details"><div class="merchant"></div><div class="meta"></div></div><div class="money"></div>';
+    row.querySelector('.merchant').textContent = description;
+    row.querySelector('.meta').textContent = category + ' · ' + dateLabel;
+    row.querySelector('.money').textContent = (type === 'income' ? '+' : '−') + '€' + amount.toFixed(2);
+    if (type === 'income') row.querySelector('.money').classList.add('income');
+    const container = document.getElementById('transactions');
+    const day = document.createElement('div'); day.className = 'day'; day.textContent = dateLabel;
+    container.prepend(row); container.prepend(day);
+    document.getElementById('transactionForm').reset();
+    document.getElementById('kind').value = 'expense';
+    document.querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('selected', b.dataset.kind === 'expense'));
+    modal.close(); filterRows();
+  });
+</script>
+</body>
+</html>
