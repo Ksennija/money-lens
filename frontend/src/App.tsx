@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import NavBar from "./components/NavBar";
+import InsightsPage from "./pages/InsightsPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
@@ -15,10 +16,7 @@ type SessionState =
   | { status: "logged-in"; user: CurrentUser };
 
 // Private pages that only have a title for now.
-const PRIVATE_PLACEHOLDERS = [
-  { path: "/insights", title: "Insights" },
-  { path: "/history", title: "History" },
-];
+const PRIVATE_PLACEHOLDERS = [{ path: "/history", title: "History" }];
 
 function toSessionState(user: CurrentUser | null): SessionState {
   return user ? { status: "logged-in", user } : { status: "logged-out" };
@@ -62,6 +60,7 @@ function App() {
             element={<AuthenticatedPage user={session.user} />}
           />
           <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/insights" element={<InsightsPage />} />
           {PRIVATE_PLACEHOLDERS.map(({ path, title }) => (
             <Route
               key={path}
@@ -92,6 +91,7 @@ function App() {
         />
         <Route path="/overview" element={<Navigate to="/signin" replace />} />
         <Route path="/transactions" element={<Navigate to="/signin" replace />} />
+        <Route path="/insights" element={<Navigate to="/signin" replace />} />
         {PRIVATE_PLACEHOLDERS.map(({ path }) => (
           <Route
             key={path}
