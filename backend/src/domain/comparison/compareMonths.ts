@@ -55,3 +55,28 @@ export function previousMonth(month: string): string {
 export function monthBounds(month: string): { start: string; end: string } {
   return { start: `${month}-01`, end: `${shiftMonth(month, 1)}-01` };
 }
+
+function daysInMonth(month: string): number {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+}
+
+// Day 1 up to and including `day`, as an exclusive end; capped at the end of a shorter month.
+function windowUpToDay(month: string, day: number): { start: string; end: string } {
+  const bounds = monthBounds(month);
+  if (day >= daysInMonth(month)) return bounds;
+  return { start: bounds.start, end: `${month}-${String(day + 1).padStart(2, '0')}` };
+}
+
+// The month of the latest transaction up to that day, and the same days of the month before it.
+export function comparisonWindows(latestDate: string): {
+  current: { start: string; end: string };
+  previous: { start: string; end: string };
+} {
+  const month = latestDate.slice(0, 7);
+  const day = Number(latestDate.slice(8, 10));
+  return {
+    current: windowUpToDay(month, day),
+    previous: windowUpToDay(previousMonth(month), day),
+  };
+}

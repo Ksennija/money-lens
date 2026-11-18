@@ -1,4 +1,11 @@
-import { compareTotals, isValidMonth, monthBounds, previousMonth, summarize } from './compareMonths.js';
+import {
+  compareTotals,
+  comparisonWindows,
+  isValidMonth,
+  monthBounds,
+  previousMonth,
+  summarize,
+} from './compareMonths.js';
 
 describe('summarize', () => {
   it('sums money out as spending and money in as income', () => {
@@ -70,5 +77,21 @@ describe('month helpers', () => {
     expect(isValidMonth('2026-00')).toBe(false);
     expect(isValidMonth('2026-8')).toBe(false);
     expect(isValidMonth('08-2026')).toBe(false);
+  });
+});
+
+describe('comparisonWindows', () => {
+  it('compares day 1 up to the latest transaction day with the same days last month (Test Case 12)', () => {
+    expect(comparisonWindows('2026-09-10')).toEqual({
+      current: { start: '2026-09-01', end: '2026-09-11' },
+      previous: { start: '2026-08-01', end: '2026-08-11' },
+    });
+  });
+
+  it('cuts the previous window to the end of a shorter month (Test Case 13)', () => {
+    expect(comparisonWindows('2027-03-31')).toEqual({
+      current: { start: '2027-03-01', end: '2027-04-01' },
+      previous: { start: '2027-02-01', end: '2027-03-01' },
+    });
   });
 });
