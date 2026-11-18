@@ -23,7 +23,7 @@ export type MonthlyComparison = {
 
 const DEFAULT_CURRENCY = 'EUR';
 
-function mostCommonCurrency(rows: TransactionAmount[]): string | undefined {
+export function mostCommonCurrency(rows: TransactionAmount[]): string | undefined {
   const counts = new Map<string, number>();
   for (const { currency } of rows) counts.set(currency, (counts.get(currency) ?? 0) + 1);
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
