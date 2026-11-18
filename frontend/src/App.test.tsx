@@ -251,19 +251,47 @@ describe("App", () => {
     }
   );
 
-  it.each([
-    ["/insights", "Insights"],
-    ["/history", "History"],
-  ])("shows the %s placeholder to a signed-in user", async (path, title) => {
+  it("shows the /history placeholder to a signed-in user", async () => {
     mockApi({ "GET /api/me": [LOGGED_IN_ME] });
 
     render(
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter initialEntries={["/history"]}>
         <App />
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole("heading", { name: title })).not.toBeNull();
+    expect(await screen.findByRole("heading", { name: "History" })).not.toBeNull();
+  });
+
+  it("shows the category changes on /insights to a signed-in user", async () => {
+    mockApi({
+      "GET /api/me": [LOGGED_IN_ME],
+      "GET /api/category-changes": [
+        {
+          status: 200,
+          body: {
+            code: "category-changes",
+            month: "2026-09",
+            currency: "EUR",
+            hasTransactions: true,
+            changes: [
+              { category: "shopping", direction: "up", amountCents: 5995 },
+              { category: "other", direction: "down", amountCents: 2500 },
+            ],
+          },
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/insights"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole("heading", { name: "🔎 2 things changed this month" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "Shopping" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "↓ €25" })).not.toBeNull();
   });
 
   it("shows the transactions of the latest month on /transactions to a signed-in user", async () => {

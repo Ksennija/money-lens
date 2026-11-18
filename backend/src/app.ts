@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { authRateLimiter } from './middleware/authRateLimit.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandlers.js';
 import { sessionMiddleware } from './middleware/session.js';
+import { categoryChangesRoutes } from './routes/categoryChanges.js';
 import { comparisonRoutes } from './routes/comparison.js';
 import { importTransactionsRoutes } from './routes/importTransactions.js';
 import { loginRoutes } from './routes/login.js';
@@ -46,6 +47,7 @@ export function createApp(options: AppOptions = {}) {
   app.use(meRoutes());
   app.use(importTransactionsRoutes());
   app.use(comparisonRoutes());
+  app.use(categoryChangesRoutes());
   app.use(transactionsRoutes());
 
   app.use('/api', notFoundHandler);
