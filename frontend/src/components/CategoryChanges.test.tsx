@@ -39,6 +39,18 @@ describe("CategoryChanges", () => {
     ]);
   });
 
+  it("names the direction of every change for a screen reader, not only by the arrow (Test Case 23)", () => {
+    render(<CategoryChanges changes={CHANGES} currency="EUR" />);
+
+    expect(screen.getAllByRole("img", { name: "Increase" })).toHaveLength(6);
+    expect(screen.getAllByRole("img", { name: "Decrease" })).toHaveLength(2);
+
+    const shopping = screen.getByRole("row", { name: /^Shopping/ });
+    expect(within(shopping).getByRole("img", { name: "Increase" })).toBeTruthy();
+    const other = screen.getByRole("row", { name: /^Other/ });
+    expect(within(other).getByRole("img", { name: "Decrease" })).toBeTruthy();
+  });
+
   it("says '1 thing changed' for a single row (Test Case 10)", () => {
     render(<CategoryChanges changes={[CHANGES[0]]} currency="EUR" />);
 

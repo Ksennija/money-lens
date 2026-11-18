@@ -291,7 +291,7 @@ describe("App", () => {
 
     expect(await screen.findByRole("heading", { name: "🔎 2 things changed this month" })).not.toBeNull();
     expect(screen.getByRole("cell", { name: "Shopping" })).not.toBeNull();
-    expect(screen.getByRole("cell", { name: "↓ €25" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "Decrease €25" })).not.toBeNull();
   });
 
   it("shows the transactions of the latest month on /transactions to a signed-in user", async () => {

@@ -31,7 +31,16 @@ export default function CategoryChanges({ changes, currency }: Props) {
             <tr key={change.category}>
               <td>{categoryLabel(change.category)}</td>
               <td>
-                {change.direction === 'up' ? '↑' : '↓'} {formatWholeMoney(change.amountCents, currency)}
+                {change.direction === 'up' ? (
+                  <span role="img" aria-label="Increase">
+                    ↑
+                  </span>
+                ) : (
+                  <span role="img" aria-label="Decrease">
+                    ↓
+                  </span>
+                )}{' '}
+                {formatWholeMoney(change.amountCents, currency)}
               </td>
             </tr>
           ))}
