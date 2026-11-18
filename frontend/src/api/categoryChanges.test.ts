@@ -53,4 +53,59 @@ describe("getCategoryChanges", () => {
       },
     });
   });
+
+  it("returns the code and message of an error answer", async () => {
+    mockFetchResponse(502, { code: "rates-unavailable", message: "Exchange rates are currently unavailable" });
+
+    expect(await getCategoryChanges()).toEqual({
+      ok: false,
+      code: "rates-unavailable",
+      message: "Exchange rates are currently unavailable",
+    });
+  });
+
+  it("reports a server error when an error answer has no code and message", async () => {
+    mockFetchResponse(500, { unexpected: true });
+
+    expect(await getCategoryChanges()).toEqual({
+      ok: false,
+      code: "server-error",
+      message: "Something went wrong",
+    });
+  });
+
+  it("reports a server error when a success answer is missing a field", async () => {
+    mockFetchResponse(200, { code: "category-changes", month: "2026-09", currency: "EUR", changes: [] });
+
+    expect(await getCategoryChanges()).toEqual({
+      ok: false,
+      code: "server-error",
+      message: "Something went wrong",
+    });
+  });
+
+  it("reports a server error when a change has an unknown direction", async () => {
+    mockFetchResponse(200, {
+      ...BODY,
+      changes: [{ category: "shopping", direction: "sideways", amountCents: 100 }],
+    });
+
+    expect(await getCategoryChanges()).toEqual({
+      ok: false,
+      code: "server-error",
+      message: "Something went wrong",
+    });
+  });
+
+  it("reports a server error when the request itself fails", async () => {
+    globalThis.fetch = jest.fn(async () => {
+      throw new Error("network down");
+    }) as unknown as typeof fetch;
+
+    expect(await getCategoryChanges()).toEqual({
+      ok: false,
+      code: "server-error",
+      message: "Something went wrong",
+    });
+  });
 });
