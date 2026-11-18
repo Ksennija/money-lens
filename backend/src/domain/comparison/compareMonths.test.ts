@@ -94,4 +94,22 @@ describe('comparisonWindows', () => {
       previous: { start: '2027-02-01', end: '2027-03-01' },
     });
   });
+
+  it('keeps the 29th of February in a leap year', () => {
+    expect(comparisonWindows('2028-03-29')).toEqual({
+      current: { start: '2028-03-01', end: '2028-03-30' },
+      previous: { start: '2028-02-01', end: '2028-03-01' },
+    });
+    expect(comparisonWindows('2028-03-28')).toEqual({
+      current: { start: '2028-03-01', end: '2028-03-29' },
+      previous: { start: '2028-02-01', end: '2028-02-29' },
+    });
+  });
+
+  it('crosses a year boundary', () => {
+    expect(comparisonWindows('2027-01-10')).toEqual({
+      current: { start: '2027-01-01', end: '2027-01-11' },
+      previous: { start: '2026-12-01', end: '2026-12-11' },
+    });
+  });
 });

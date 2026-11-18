@@ -4,6 +4,7 @@ import { prisma } from "./db/client.js";
 import { pool } from "./db/pool.js";
 
 const USER_EMAIL = "category-changes-a@example.com";
+const OTHER_USER_EMAIL = "category-changes-b@example.com";
 const PASSWORD = "ValidPass123";
 
 // An unusual code, so the test never touches real cached rates or the rate API.
@@ -23,12 +24,14 @@ async function loggedInAgent(email: string) {
 
 describe("GET /api/category-changes", () => {
   afterEach(async () => {
-    const user = await prisma.user.findUnique({ where: { email: USER_EMAIL } });
-    if (user) {
-      await prisma.session.deleteMany({ where: { sess: { path: ["userId"], equals: user.id } } });
+    for (const email of [USER_EMAIL, OTHER_USER_EMAIL]) {
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (user) {
+        await prisma.session.deleteMany({ where: { sess: { path: ["userId"], equals: user.id } } });
+      }
     }
     // Transactions are removed with their user (cascade delete).
-    await prisma.user.deleteMany({ where: { email: USER_EMAIL } });
+    await prisma.user.deleteMany({ where: { email: { in: [USER_EMAIL, OTHER_USER_EMAIL] } } });
   });
 
   afterAll(async () => {
@@ -63,5 +66,44 @@ describe("GET /api/category-changes", () => {
 
     expect(res.status).toBe(401);
     expect(res.body).toEqual({ code: "unauthenticated", message: "Not logged in" });
+  });
+
+  it("rejects a currency that is not three letters with 400 invalid-currency", async () => {
+    const { agent } = await loggedInAgent(USER_EMAIL);
+
+    const res = await agent.get("/api/category-changes?currency=EU");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ code: "invalid-currency", message: "Currency must be a three-letter code" });
+  });
+
+  it("answers 200 with no transactions for a user who has none", async () => {
+    const { agent } = await loggedInAgent(USER_EMAIL);
+
+    const res = await agent.get("/api/category-changes");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      code: "category-changes",
+      currency: "EUR",
+      hasTransactions: false,
+      changes: [],
+    });
+  });
+
+  it("never includes another user's transactions (Test Case 22)", async () => {
+    const owner = await loggedInAgent(USER_EMAIL);
+    await prisma.transaction.createMany({
+      data: [
+        tx("2026-08-05", -10000, "REWE Markt"),
+        tx("2026-09-10", -15000, "REWE Markt"),
+      ].map((t) => ({ ...t, userId: owner.userId })),
+    });
+    const other = await loggedInAgent(OTHER_USER_EMAIL);
+
+    const res = await other.agent.get("/api/category-changes");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ hasTransactions: false, changes: [] });
   });
 });
