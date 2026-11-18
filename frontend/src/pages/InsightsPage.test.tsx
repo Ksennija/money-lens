@@ -63,8 +63,8 @@ describe("InsightsPage", () => {
     expect(await screen.findByRole("heading", { name: "🔎 2 things changed this month" })).not.toBeNull();
     expect(screen.queryByRole("status")).toBeNull();
     expect(screen.getByRole("cell", { name: "Shopping" })).not.toBeNull();
-    expect(screen.getByRole("cell", { name: "↑ €60" })).not.toBeNull();
-    expect(screen.getByRole("cell", { name: "↓ €25" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "Increase €60" })).not.toBeNull();
+    expect(screen.getByRole("cell", { name: "Decrease €25" })).not.toBeNull();
   });
 
   it("shows 'No spending changes…' when no category changed by 1 euro or more (Test Case 16)", async () => {
