@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getCategoryChanges, type CategoryChanges as CategoryChangesData } from '../api/categoryChanges';
 import CategoryChanges from '../components/CategoryChanges';
+import RatesNotice from '../components/RatesNotice';
 
 type View =
   | { status: 'loading' }
@@ -50,6 +51,8 @@ export default function InsightsPage() {
           </button>
         </>
       )}
+
+      {view.status === 'ready' && view.data.ratesApproximate && <RatesNotice />}
 
       {view.status === 'ready' && !view.data.hasTransactions && <p>No transactions yet this month.</p>}
 

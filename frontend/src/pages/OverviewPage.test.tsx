@@ -73,6 +73,17 @@ describe("OverviewPage", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("shows a notice above the table when some amounts use an older exchange rate (Criterion 8)", async () => {
+    mockApi({ "/api/comparison": [{ status: 200, body: { ...SEPTEMBER.body, ratesApproximate: true } }] });
+
+    render(<OverviewPage />);
+
+    expect((await screen.findByRole("note")).textContent).toBe(
+      "Some amounts use an older exchange rate because current rates are unavailable."
+    );
+    expect(screen.getByRole("table")).not.toBeNull();
+  });
+
   it("shows the change of every value vs the previous month with direction, amount and month name", async () => {
     mockApi({ "/api/comparison": [SEPTEMBER] });
 

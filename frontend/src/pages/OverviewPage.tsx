@@ -1,5 +1,6 @@
 import { getComparison, type Comparison, type Totals } from '../api/comparison';
 import MonthNav from '../components/MonthNav';
+import RatesNotice from '../components/RatesNotice';
 import { useMonthNavigation, type MonthResult } from '../hooks/useMonthNavigation';
 import { formatMonth, formatMonthName } from '../lib/months';
 
@@ -69,6 +70,7 @@ export default function OverviewPage() {
           <h3>
             {formatMonth(shown.month)} · {shown.currency}
           </h3>
+          {shown.ratesApproximate && <RatesNotice />}
         </>
       )}
 

@@ -50,8 +50,17 @@ describe("getCategoryChanges", () => {
           { category: "shopping", direction: "up", amountCents: 5995 },
           { category: "other", direction: "down", amountCents: 2500 },
         ],
+        ratesApproximate: false,
       },
     });
+  });
+
+  it("passes on that the rates are approximate", async () => {
+    mockFetchResponse(200, { ...BODY, ratesApproximate: true });
+
+    const result = await getCategoryChanges();
+
+    expect(result).toMatchObject({ ok: true, categoryChanges: { ratesApproximate: true } });
   });
 
   it("returns the code and message of an error answer", async () => {

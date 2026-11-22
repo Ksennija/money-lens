@@ -62,8 +62,17 @@ describe("getComparison", () => {
         current: { spendingCents: 296000, incomeCents: 320000, netCents: 24000 },
         previous: { spendingCents: 259000, incomeCents: 310000, netCents: 51000 },
         change: { spendingCents: 37000, incomeCents: 10000, netCents: -27000 },
+        ratesApproximate: false,
       },
     });
+  });
+
+  it("passes on that the rates are approximate", async () => {
+    mockFetchResponse(200, { ...BODY, ratesApproximate: true });
+
+    const result = await getComparison();
+
+    expect(result).toMatchObject({ ok: true, comparison: { ratesApproximate: true } });
   });
 
   it("returns the code and message of a rates-unavailable error", async () => {
