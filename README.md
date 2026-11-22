@@ -31,12 +31,12 @@ The two projects only talk over HTTP. In development, Vite proxies `/api` to the
 
 ## Frontend (`frontend/src`)
 
-| Folder | Role |
-| --- | --- |
-| `pages/` | One component per screen: Overview, Transactions, Insights, Import, Login, Registration |
-| `components/` | Parts shared by pages (navigation bar, month navigation, category filter, rates notice) |
-| `api/` | One small function per backend endpoint. It checks the answer and has no React code |
-| `hooks/`, `lib/` | Month navigation, month and category helpers |
+| Folder           | Role                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| `pages/`         | One component per screen: Overview, Transactions, Insights, Import, Login, Registration |
+| `components/`    | Parts shared by pages (navigation bar, month navigation, category filter, rates notice) |
+| `api/`           | One small function per backend endpoint. It checks the answer and has no React code     |
+| `hooks/`, `lib/` | Month navigation, month and category helpers                                            |
 
 Pages call `api/`, never the other way round. Routing is in `App.tsx`: signed-out users are sent to sign in.
 
@@ -44,25 +44,25 @@ Pages call `api/`, never the other way round. Routing is in `App.tsx`: signed-ou
 
 A request goes through these layers, top to bottom:
 
-| Layer | Role |
-| --- | --- |
-| `routes/` | HTTP only: read the request, call a service, send the answer. One file per endpoint |
-| `middleware/` | Sessions, `requireAuth`, login rate limit, error handlers |
-| `services/` | Use cases: import a CSV, compare months, find category changes, convert currencies |
-| `domain/` | The business rules as plain functions: CSV parsing, categorization, month comparison, category changes, currency math |
-| `db/` | The only code that talks to Postgres (Prisma and a session pool) |
+| Layer         | Role                                                                                                                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `routes/`     | HTTP only: read the request, call a service, send the answer. One file per endpoint                                   |
+| `middleware/` | Sessions, `requireAuth`, login rate limit, error handlers                                                             |
+| `services/`   | Use cases: import a CSV, compare months, find category changes, convert currencies                                    |
+| `domain/`     | The business rules as plain functions: CSV parsing, categorization, month comparison, category changes, currency math |
+| `db/`         | The only code that talks to Postgres (Prisma and a session pool)                                                      |
 
 `domain/` knows nothing about HTTP or the database, so its rules are tested without either. `services/` connects the rules to the database and to the exchange rate API.
 
 Endpoints, all under `/api` and all except register and login need a session:
 
-| Endpoint | Purpose |
-| --- | --- |
-| `POST /register`, `POST /login`, `POST /logout`, `GET /me` | Account and session |
-| `POST /transactions/import` | Upload a bank CSV; each transaction is categorized on the way in |
-| `GET /transactions` | List transactions, filtered by category |
-| `GET /comparison` | Income, spending and savings of a month against the previous month |
-| `GET /category-changes` | Which categories changed against the same days last month |
+| Endpoint                                                   | Purpose                                                            |
+| ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `POST /register`, `POST /login`, `POST /logout`, `GET /me` | Account and session                                                |
+| `POST /transactions/import`                                | Upload a bank CSV; each transaction is categorized on the way in   |
+| `GET /transactions`                                        | List transactions, filtered by category                            |
+| `GET /comparison`                                          | Income, spending and savings of a month against the previous month |
+| `GET /category-changes`                                    | Which categories changed against the same days last month          |
 
 ## Main flows
 
@@ -128,7 +128,18 @@ Optional: `TRUST_PROXY` and `DB_POOL_MAX` (see `backend/.env.example`).
 - Backend: <http://localhost:3000> (change with the `PORT` variable)
 - Frontend: Vite dev server, usually <http://localhost:5173>. It proxies API calls to the backend.
 
-When the project starts, the user can see a home page on the screen.
+## How to know it worked
+
+1. **After `prisma:migrate`:** the terminal ends without an error and lists the applied migrations. Docker users can check the database with `docker compose ps`: the `db` service should be `running`.
+2. **After `pnpm dev`:** the terminal shows two labelled streams, `[frontend]` with the Vite address and `[backend]` with the line `Backend listening on http://localhost:3000`. Neither shows an error.
+3. **In the browser** at <http://localhost:5173>:
+   - You see a navigation bar with **Home**, **Sign up** and **Sign in**, and a **Home Page**.
+   - Open **Sign up**, create an account with an email and password. You land on a page titled **Money Lens** with `Logged in as <your email>`, and the navigation bar now has **Sign out**.
+   - Under **Import transactions**, choose `spec/samples/bank-export-sample.csv` and press **Import**. A line like `N imported, 0 duplicates skipped, 0 rows rejected` appears (the sample has 36 data rows). Importing the same file again moves the imported rows to the duplicates count.
+   - The overview above it shows a table with **Income**, **Spent** and **Saved** for the latest month, with a change against the previous month. **Transactions** lists the rows with their categories, and **Insights** shows which categories changed.
+4. **If something is wrong:**
+   - A blank page or a message "Something went wrong" usually means the backend is not running or `DATABASE_URL` is wrong. Check the `[backend]` lines in the terminal.
+   - A message that exchange rates are unavailable means the backend cannot reach the Frankfurter API and has no recent cached rate. Check your internet connection and try again.
 
 ## Other commands
 
