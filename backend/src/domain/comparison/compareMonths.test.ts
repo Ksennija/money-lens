@@ -16,6 +16,15 @@ describe('summarize', () => {
     });
   });
 
+  it('subtracts refunds from spending instead of adding them to income (Test Case 1)', () => {
+    // Salary 3000.00 and a purchase of 50.00, plus a refund of 15.00 passed on its own.
+    expect(summarize([300000, -5000], [1500])).toEqual({
+      spendingCents: 3500,
+      incomeCents: 300000,
+      netCents: 296500,
+    });
+  });
+
   it('returns zeros for no transactions', () => {
     expect(summarize([])).toEqual({ spendingCents: 0, incomeCents: 0, netCents: 0 });
   });

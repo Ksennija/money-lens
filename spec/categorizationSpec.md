@@ -11,7 +11,7 @@ Money Lens exists to show someone who earns enough why they do not save. For tha
 - A fixed list of categories and an ordered list of keyword rules, kept in the backend
 - A pure function that returns exactly one category for any transaction
 - `GET /api/transactions` returns a `category` for every transaction
-- Unmatched transactions get the category "other", except unknown deposits (a positive amount that matches no rule), which get "income"
+- Unmatched transactions get the category "other", except unknown deposits (a positive amount that matches no rule and has no refund word), which get "income"
 - The categories are computed on read, not stored
 - Matching is by whole words, in lower case (case and accents ignored)
 
@@ -69,7 +69,8 @@ const rules = [
 - A keyword of several words (`DEUTSCHE BAHN`, `ACCOUNT FEE`) matches those words next to each other
 - Punctuation and extra spaces are ignored, so "Netflix.com" matches `NETFLIX`
 - The first rule (top to bottom) with a matching keyword decides. The order of the list is part of the behaviour
-- A transaction that matches no rule is "other", unless its amount is positive: an unknown deposit is "income"
+- A transaction that matches no rule is "other", unless its amount is positive: an unknown deposit is "income", except a deposit with a refund word, which is "other"
+- The refund words are `REFUND`, `REVERSAL`, `ERSTATTUNG`, `RUCKERSTATTUNG` and `GUTSCHRIFT`, matched like any keyword. `REIMBURSEMENT` is not one, because an expense reimbursement is income. A refund is "other" so that it reduces spending in the monthly comparison and the category changes
 - The amount and its sign are used only for that last step, never to override a rule. A refund that matches a shop stays in that shop's category (the Amazon refund of +18.99 is "shopping"), as agreed for the overview
 - A negative or zero amount that matches no rule is "other" (Anna Weber, -25.00)
 - Every transaction gets exactly one category, never none
@@ -112,7 +113,7 @@ const rules = [
 - Every transaction in the list shows a category
 - After importing `spec/samples/bank-export-sample.csv`, the 36 transactions are categorized as in the table below
 - A transaction that matches no rule shows "Other"
-- A positive amount that matches no rule shows "Income"
+- A positive amount that matches no rule shows "Income", unless it has a refund word: then it shows "Other"
 - Matching ignores case and accents and uses whole words only
 - When two rules would match, the one higher in the list wins
 - The categories of the same transaction never change between requests
@@ -147,7 +148,7 @@ Backend, unit (`categorize.test.ts`, no database):
 - punctuation does not hide a match ("Netflix.com", "REWE-Markt")
 - the first matching rule wins when two rules match
 - a positive amount that matches a shop stays in the shop's category
-- a positive amount that matches no rule is "income"; a negative or zero one is "other"
+- a positive amount that matches no rule is "income", or "other" when it has a refund word; a negative or zero one is "other"
 - empty or symbol-only text gives "other" (negative amount) or "income" (positive amount)
 - rule list check: every rule uses an existing category id, uppercase keywords, and no keyword is empty
 

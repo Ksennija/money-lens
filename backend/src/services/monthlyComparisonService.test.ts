@@ -10,8 +10,15 @@ const EMAIL = 'comparison-service@example.com';
 const HOME = 'ZYB';
 const FOREIGN = 'ZYA';
 
-function tx(userId: string, date: string, amountCents: number, currency: string) {
-  return { userId, date: new Date(`${date}T00:00:00Z`), amountCents, currency, counterparty: 'Shop', details: 'Test' };
+function tx(
+  userId: string,
+  date: string,
+  amountCents: number,
+  currency: string,
+  counterparty = 'Shop',
+  details = 'Test',
+) {
+  return { userId, date: new Date(`${date}T00:00:00Z`), amountCents, currency, counterparty, details };
 }
 
 function fakeApi(rates: Record<string, number>) {
@@ -59,6 +66,20 @@ describe('getMonthlyComparison', () => {
     expect(result.previous.spendingCents).toBe(1000);
     expect(result.current.spendingCents).toBe(3100);
     expect(api.calls).toEqual([[FOREIGN, HOME, '2026-07-10', '2026-08-12']]);
+  });
+
+  it('reduces spending by a refund from an unknown merchant instead of counting it as income (Test Case 1)', async () => {
+    await prisma.transaction.createMany({
+      data: [
+        tx(userId, '2026-08-01', 300000, HOME, 'Acme GmbH', 'Salary'),
+        tx(userId, '2026-08-05', -5000, HOME, 'Local Shop', 'Purchase'),
+        tx(userId, '2026-08-10', 1500, HOME, 'Local Shop', 'Refund'),
+      ],
+    });
+
+    const result = await getMonthlyComparison(userId, '2026-08', HOME, fakeApi({}).fetchRates);
+
+    expect(result.current).toEqual({ spendingCents: 3500, incomeCents: 300000, netCents: 296500 });
   });
 
   it('does not call the API again once the rates are cached', async () => {

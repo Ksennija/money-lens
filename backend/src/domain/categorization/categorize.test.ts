@@ -75,6 +75,21 @@ describe('categorize', () => {
     expect(categorize(text('Anna Weber', 'Transfer', 2500))).toBe('income');
   });
 
+  it('gives "other" to an unknown deposit that is a refund, so it is not counted as income', () => {
+    expect(categorize(text('Local Shop', 'Refund', 1500))).toBe('other');
+  });
+
+  it('recognizes German refund words in an unknown deposit', () => {
+    expect(categorize(text('Local Shop', 'Erstattung Bestellung 123', 1500))).toBe('other');
+    expect(categorize(text('Local Shop', 'Rückerstattung', 1500))).toBe('other');
+    expect(categorize(text('Local Shop', 'Gutschrift', 1500))).toBe('other');
+  });
+
+  it('keeps an unknown deposit that is not a refund as income', () => {
+    expect(categorize(text('Local Shop', 'Expense reimbursement', 8500))).toBe('income');
+    expect(categorize(text('Anna Weber', 'Transfer', 2500))).toBe('income');
+  });
+
   it('gives "other" to an unknown payment or a zero amount', () => {
     expect(categorize(text('Anna Weber', 'Transfer', -2500))).toBe('other');
     expect(categorize(text('Anna Weber', 'Transfer', 0))).toBe('other');

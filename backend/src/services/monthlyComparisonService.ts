@@ -7,6 +7,7 @@ import {
   type Change,
   type Totals,
 } from '../domain/comparison/compareMonths.js';
+import { categorize } from '../domain/categorization/categorize.js';
 import { convertAmountCents } from '../domain/currency/convertAmount.js';
 import { getRates } from './currencyConversionService.js';
 import { resolveMonth } from './resolveMonth.js';
@@ -59,14 +60,22 @@ export async function getMonthlyComparison(
         return group.map((r) => ({
           month: r.date.slice(0, 7),
           amountCents: convertAmountCents(r.amountCents, rates.get(r.date)!),
+          // Money in that is not income (a refund) gives spending back instead of adding income.
+          isRefund: r.amountCents > 0 && categorize(r) !== 'income',
         }));
       }),
     )
   ).flat();
 
-  const amountsOf = (m: string) => converted.filter((c) => c.month === m).map((c) => c.amountCents);
-  const currentTotals = summarize(amountsOf(month));
-  const previousTotals = summarize(amountsOf(previous));
+  const totalsOf = (m: string) => {
+    const inMonth = converted.filter((c) => c.month === m);
+    return summarize(
+      inMonth.filter((c) => !c.isRefund).map((c) => c.amountCents),
+      inMonth.filter((c) => c.isRefund).map((c) => c.amountCents),
+    );
+  };
+  const currentTotals = totalsOf(month);
+  const previousTotals = totalsOf(previous);
 
   return {
     month,

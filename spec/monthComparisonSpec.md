@@ -50,8 +50,9 @@ Success body:
 ## Calculation
 
 - **Month:** a transaction belongs to the month of its booking date. The first and last day of the month are included. The previous month is the calendar month before it, also across a year boundary
-- **Spending:** the sum of money out, reported as a positive number
-- **Income:** the sum of money in. Refunds and reimbursements are positive, so they count as income
+- **Refund:** a positive amount whose category is not `income` (see `categorizationSpec.md`). That covers a deposit with a refund word and a refund from a merchant that has a rule, such as an Amazon refund
+- **Spending:** the sum of money out minus the refunds, reported as a positive number. It is negative when refunds are higher than the purchases of the month
+- **Income:** the sum of the other money in. Reimbursements and salary count as income, refunds do not
 - **Net:** income minus spending, negative when spending is higher
 - **Change:** current minus previous, in cents, for spending, income and net
 - **Percent:** `(current - previous) / previous * 100`, rounded to one decimal, for spending and income. `null` when the previous month's value is 0
@@ -80,7 +81,7 @@ Reads the user's transactions and the `ExchangeRate` cache. Writes nothing excep
 - Per-category breakdown. Categorization does not exist yet
 - Comparing against any period other than the previous calendar month (year over year, custom ranges)
 - A stored user setting for the home currency
-- Telling refunds apart from income
+- Matching a refund to the purchase it gives back. A refund reduces the spending of the month it is booked in
 - Listing the transactions behind a total
 
 ## Dependencies
@@ -93,5 +94,6 @@ Reads the user's transactions and the `ExchangeRate` cache. Writes nothing excep
 - The home currency is guessed from the data. It can flip if a user's most common currency changes between months, which changes every total. A stored user setting would fix this
 - A transaction in a currency the rate service does not support makes the whole comparison fail with `invalid-currency`. Should such transactions be left out and listed in the response instead?
 - A foreign-currency transaction dated today causes one rate API request on every call, because today's rate is not cached
-- Refunds count as income and inflate it. Spending is also not reduced by the refund
+- Refunds are found by words and merchant rules, so a refund without a refund word and from an unknown merchant still counts as income and inflates it
+- Spending is negative when the refunds of a month are higher than its purchases. Should it be shown as 0 instead?
 - Should the current month, which is still in progress, be compared with the full previous month or with the same days of it? Today it is the full month, so a half-finished month looks like a big drop
