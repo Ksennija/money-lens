@@ -58,6 +58,7 @@ describe("GET /api/category-changes", () => {
       currency: HOME,
       hasTransactions: true,
       changes: [{ category: "groceries", direction: "up", amountCents: 5000 }],
+      ratesApproximate: false,
     });
   });
 

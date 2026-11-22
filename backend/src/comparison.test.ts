@@ -84,6 +84,7 @@ describe("GET /api/comparison", () => {
       current: { spendingCents: 4600, incomeCents: 30300, netCents: 25700 },
       previous: { spendingCents: 2000, incomeCents: 30000, netCents: 28000 },
       change: { spendingCents: 2600, incomeCents: 300, netCents: -2300, spendingPercent: 130, incomePercent: 1 },
+      ratesApproximate: false,
     });
   });
 

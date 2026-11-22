@@ -32,6 +32,10 @@ function fakeApi(rates: Record<string, number>) {
   return { fetchRates, calls };
 }
 
+function daysAgo(days: number): string {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
 describe('getMonthlyComparison', () => {
   let userId: string;
 
@@ -80,6 +84,22 @@ describe('getMonthlyComparison', () => {
     const result = await getMonthlyComparison(userId, '2026-08', HOME, fakeApi({}).fetchRates);
 
     expect(result.current).toEqual({ spendingCents: 3500, incomeCents: 300000, netCents: 296500 });
+  });
+
+  it('converts today at yesterday\'s cached rate when the API is down and reports approximate rates (Criterion 1)', async () => {
+    const today = daysAgo(0);
+    await prisma.exchangeRate.create({
+      data: { base: FOREIGN, quote: HOME, date: new Date(`${daysAgo(1)}T00:00:00Z`), rate: 2 },
+    });
+    await prisma.transaction.createMany({ data: [tx(userId, today, -1000, FOREIGN)] });
+    const apiDown: FetchRates = async () => {
+      throw new RateServiceError('Rate API is down');
+    };
+
+    const result = await getMonthlyComparison(userId, today.slice(0, 7), HOME, apiDown);
+
+    expect(result.current.spendingCents).toBe(2000);
+    expect(result.ratesApproximate).toBe(true);
   });
 
   it('does not call the API again once the rates are cached', async () => {
