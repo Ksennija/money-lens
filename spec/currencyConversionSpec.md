@@ -24,6 +24,7 @@ Service: `src/services/currencyConversionService.ts`. Dates are `YYYY-MM-DD`. Cu
 | `getRate(from, to, date)` | Rate for one day: 1 unit of `from` = rate units of `to` |
 | `getRates(from, to, dates[])` | Map of date to rate for all given days (duplicates ignored) |
 | `convertCents(amountCents, from, to, date)` | Amount in cents of the `to` currency |
+| `getRatesWithFallback(from, to, dates[])` | Like `getRates`, but returns `{ rates, approximateDays }` and uses an older cached rate for a day the API cannot give (see Fallback) |
 
 - **Same currency:** the rate is 1, nothing is read from the database or the API
 - **Cache hit:** a rate stored in the database is returned without calling the API
@@ -41,7 +42,17 @@ Service: `src/services/currencyConversionService.ts`. Dates are `YYYY-MM-DD`. Cu
 | API unreachable, times out (10 s) or answers 429, 5xx or any other non-OK status | `RateServiceError` |
 | API response has no rate for a requested day | `RateServiceError` naming the days |
 
-When any error occurs, nothing from that call is stored.
+When any error occurs, nothing from that call is stored. `getRatesWithFallback` is the exception: it covers `RateServiceError` for single days (see Fallback) and stores the rates the API did return. `InvalidCurrencyError` is never covered by a fallback.
+
+## Fallback
+
+Used by the monthly comparison and the category changes, so a short outage of the rate API does not break them. `getRate`, `getRates` and `convertCents` stay strict.
+
+- **When:** the API fails, or its answer has no rate for a requested day that is not cached. Days with a cached or fetched rate stay exact
+- **Which rate:** the newest stored rate of the same pair dated before the missing day, at most 7 days earlier. Rates fetched in the same call count
+- **Not stored:** a fallback rate is never saved, so the day gets its real rate once the API works again
+- **Result:** the days that used a fallback are listed in `approximateDays`
+- **No usable rate:** if no stored rate of the pair is dated within the 7 days before the missing day, the call fails with `RateServiceError`, as without a fallback
 
 ## Data
 
@@ -60,12 +71,18 @@ When any error occurs, nothing from that call is stored.
 - Today's rate is fetched on every call and never stored
 - A day missing from the API response fails the whole call and stores nothing
 - A malformed currency code is rejected before any API call
+- With the API down and yesterday's rate stored, `getRatesWithFallback` returns yesterday's rate for today and lists today in `approximateDays`
+- A stored rate 7 days older is used, one 8 days older is not (the call fails)
+- A fallback rate is not stored, and the next call with a working API stores and returns the real rate
+- If the API returns some of the missing days, those are exact and stored, and only the others fall back
+- An invalid currency is never hidden by a fallback
 
 ## Out of scope
 
 - Using the service in the month-over-month comparison (needs a decision on the user's home currency)
 - An HTTP endpoint or a UI for rates
 - Retrying or backing off on 429 and 5xx
+- A fallback for the strict functions `getRate`, `getRates` and `convertCents`
 - Expiring or refreshing stored rates (past rates are treated as final)
 - Providers other than the default blended source, and choosing a provider
 - Rates for dates in the future

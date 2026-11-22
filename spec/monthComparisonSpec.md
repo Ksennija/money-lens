@@ -28,7 +28,7 @@ Requires a logged-in user.
 | Not logged in | 401 | `unauthenticated` |
 | `month` is not `YYYY-MM` with a real month | 400 | `invalid-month` |
 | `currency` is not three letters, or the rate service does not support a currency involved | 400 | `invalid-currency` |
-| Exchange rates could not be obtained | 502 | `rates-unavailable` |
+| Exchange rates could not be obtained, and no older stored rate can stand in for the missing day (see `currencyConversionSpec.md`, Fallback) | 502 | `rates-unavailable` |
 | Success, including months with no transactions | 200 | `comparison` |
 | Unexpected failure | 500 | `server-error` |
 
@@ -43,9 +43,12 @@ Success body:
   "current":  { "spendingCents": 4600, "incomeCents": 30300, "netCents": 25700 },
   "previous": { "spendingCents": 2000, "incomeCents": 30000, "netCents": 28000 },
   "change":   { "spendingCents": 2600, "incomeCents": 300, "netCents": -2300,
-                "spendingPercent": 130, "incomePercent": 1 }
+                "spendingPercent": 130, "incomePercent": 1 },
+  "ratesApproximate": false
 }
 ```
+
+`ratesApproximate` is `true` when at least one day used an older stored rate because the rate API had none. The page then shows "Some amounts use an older exchange rate because current rates are unavailable." Otherwise it is `false`.
 
 ## Calculation
 
@@ -56,7 +59,7 @@ Success body:
 - **Net:** income minus spending, negative when spending is higher
 - **Change:** current minus previous, in cents, for spending, income and net
 - **Percent:** `(current - previous) / previous * 100`, rounded to one decimal, for spending and income. `null` when the previous month's value is 0
-- **Conversion:** each transaction is converted on its own with the rate of its booking day and rounded to whole cents (half away from zero), then the results are summed. A month's totals therefore do not change when rates move later. Transactions already in the reporting currency are not converted
+- **Conversion:** each transaction is converted on its own with the rate of its booking day and rounded to whole cents (half away from zero), then the results are summed. A month's totals therefore do not change when rates move later, except for a day that used an older rate (`ratesApproximate` is `true`): its real rate replaces the older one on the next successful call. Transactions already in the reporting currency are not converted
 - **Money:** all amounts are integer cents. Only percentages are decimal
 
 ## Data
@@ -73,6 +76,8 @@ Reads the user's transactions and the `ExchangeRate` cache. Writes nothing excep
 - Another user's transactions never appear in the totals
 - A malformed month or currency is rejected with 400 and its code
 - Not logged in returns 401
+- With the rate API down and yesterday's rate stored, a foreign-currency transaction dated today is converted at yesterday's rate and `ratesApproximate` is `true`
+- When every rate is exact, or every transaction is in the reporting currency, `ratesApproximate` is `false`
 - If any rate is unavailable the request fails with 502. Totals that leave out some transactions are never returned
 
 ## Out of scope
