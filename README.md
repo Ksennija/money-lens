@@ -79,12 +79,33 @@ Endpoints, all under `/api` and all except register and login need a session:
 
 The specs in `spec/` describe each feature and its test cases.
 
+## Before you start
 
-## Prerequisites
+You need:
 
 - **Node.js 22 or newer**
 - **pnpm** (this is a pnpm workspace, so use pnpm, not npm)
-- **A running PostgreSQL database** (the backend uses it for data and sessions)
+- **A running PostgreSQL database** (the backend uses it for data and sessions). The easiest way is Docker, see below. You can also use your own Postgres with an empty database, for example `money_lens`.
+- **Internet access.** Exchange rates for foreign-currency transactions come from the Frankfurter API (<https://api.frankfurter.dev>).
+- **A bank CSV to import** (optional, to see real numbers). Use `spec/samples/bank-export-sample.csv` to try the app, or see `spec/csvImportSpec.md` for the expected format.
+
+### Database with Docker (easiest)
+
+If you have Docker, start a local Postgres from the repository root:
+
+```bash
+docker compose up -d
+```
+
+It creates the database `money_lens` with the user and password `money_lens`, so in `backend/.env` use:
+
+```
+DATABASE_URL="postgresql://money_lens:money_lens@localhost:5432/money_lens"
+```
+
+Stop it with `docker compose down`. Add `-v` to also delete the data. If port 5432 is already taken, change the left number in the `ports` line of `docker-compose.yml` and in the URL.
+
+The tests write to this database too, so use a separate database if you keep data you care about.
 
 ## Setup
 
@@ -97,7 +118,7 @@ pnpm dev                              # starts the frontend and backend together
 
 In `backend/.env`, set:
 
-- `DATABASE_URL`: your Postgres connection string, for example `postgresql://user:password@localhost:5432/money_lens`. The database must already exist.
+- `DATABASE_URL`: your Postgres connection string, for example `postgresql://user:password@localhost:5432/money_lens`, or the Docker one above. The database must already exist.
 - `SESSION_SECRET`: a long random string. Generate one with `openssl rand -hex 32`.
 
 Optional: `TRUST_PROXY` and `DB_POOL_MAX` (see `backend/.env.example`).

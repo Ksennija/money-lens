@@ -1,0 +1,16 @@
+# A local Postgres for development. Start it with: docker compose up -d
+# Matching DATABASE_URL: postgresql://money_lens:money_lens@localhost:5432/money_lens
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: money_lens
+      POSTGRES_PASSWORD: money_lens
+      POSTGRES_DB: money_lens
+    ports:
+      - "5432:5432"
+    volumes:
+      - money_lens_data:/var/lib/postgresql/data
+
+volumes:
+  money_lens_data:
