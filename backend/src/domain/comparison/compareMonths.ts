@@ -9,14 +9,15 @@ export type Change = {
 };
 
 // Spending is the sum of money out (reported as a positive number), income the sum of money in.
-// Refunds are positive amounts, so they count as income.
-export function summarize(amountsCents: number[]): Totals {
+// Refunds are passed separately: they give spending back, so they reduce it and are not income.
+export function summarize(amountsCents: number[], refundsCents: number[] = []): Totals {
   let spendingCents = 0;
   let incomeCents = 0;
   for (const amount of amountsCents) {
     if (amount < 0) spendingCents += -amount;
     else incomeCents += amount;
   }
+  for (const refund of refundsCents) spendingCents -= refund;
   return { spendingCents, incomeCents, netCents: incomeCents - spendingCents };
 }
 

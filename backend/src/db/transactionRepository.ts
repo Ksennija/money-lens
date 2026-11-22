@@ -55,7 +55,13 @@ export async function importTransactions(
   return { imported: newRows.length, duplicates: rows.length - newRows.length };
 }
 
-export type TransactionAmount = { date: string; amountCents: number; currency: string };
+export type TransactionAmount = {
+  date: string;
+  amountCents: number;
+  currency: string;
+  counterparty: string;
+  details: string;
+};
 
 // Transactions from startDate (inclusive) to endDate (exclusive), both YYYY-MM-DD.
 export async function findTransactionAmounts(
@@ -65,13 +71,9 @@ export async function findTransactionAmounts(
 ): Promise<TransactionAmount[]> {
   const rows = await prisma.transaction.findMany({
     where: { userId, date: { gte: toDate(startDate), lt: toDate(endDate) } },
-    select: { date: true, amountCents: true, currency: true },
+    select: { date: true, amountCents: true, currency: true, counterparty: true, details: true },
   });
-  return rows.map((row) => ({
-    date: row.date.toISOString().slice(0, 10),
-    amountCents: row.amountCents,
-    currency: row.currency,
-  }));
+  return rows.map((row) => ({ ...row, date: row.date.toISOString().slice(0, 10) }));
 }
 
 export type TransactionListItem = {
