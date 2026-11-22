@@ -27,6 +27,10 @@ function fakeApi(rates: Record<string, number>) {
   return { fetchRates, calls };
 }
 
+function daysAgo(days: number): string {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
 describe('getCategoryChanges', () => {
   let userId: string;
 
@@ -62,7 +66,24 @@ describe('getCategoryChanges', () => {
       currency: HOME,
       hasTransactions: true,
       changes: [{ category: 'groceries', direction: 'up', amountCents: 5000 }],
+      ratesApproximate: false,
     });
+  });
+
+  it('converts today at yesterday\'s cached rate when the API is down and reports approximate rates (Criterion 7)', async () => {
+    const today = daysAgo(0);
+    await prisma.exchangeRate.create({
+      data: { base: FOREIGN, quote: HOME, date: new Date(`${daysAgo(1)}T00:00:00Z`), rate: 2 },
+    });
+    await prisma.transaction.createMany({ data: [tx(userId, today, -1000, 'Amazon', FOREIGN)] });
+    const apiDown: FetchRates = async () => {
+      throw new RateServiceError('Rate API is down');
+    };
+
+    const result = await getCategoryChanges(userId, HOME, apiDown);
+
+    expect(result.changes).toEqual([{ category: 'shopping', direction: 'up', amountCents: 2000 }]);
+    expect(result.ratesApproximate).toBe(true);
   });
 
   it('reports no transactions without calling the rate API', async () => {

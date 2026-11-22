@@ -603,3 +603,54 @@
 
 **Priority:** Medium
 **Type:** Regression
+
+---
+
+# Test Case 25: A notice is shown when an older exchange rate was used
+
+**Preconditions:**
+
+- A registered user is logged in
+- The user has a transaction in a foreign currency dated today
+- Yesterday's rate of that currency pair is stored, and the rate service is not reachable
+
+**Test Data:**
+
+- One foreign-currency purchase today, and a purchase in the same category in the same days of the month before
+
+**Steps:**
+
+1. Click "Insights" in the nav bar
+
+**Expected Result:**
+
+- The page loads and shows the table, the amount of today's transaction converted at yesterday's rate
+- A notice "Some amounts use an older exchange rate because current rates are unavailable." is shown above the table
+- The Overview page shows the same notice
+
+**Priority:** Medium
+**Type:** Positive / Functional
+
+---
+
+# Test Case 26: No notice when every rate is exact
+
+**Preconditions:**
+
+- Same as Test Case 1
+
+**Test Data:**
+
+- None
+
+**Steps:**
+
+1. Click "Insights" in the nav bar
+
+**Expected Result:**
+
+- No notice about exchange rates is shown
+- The same is true for a user whose transactions are all in one currency
+
+**Priority:** Medium
+**Type:** Negative / Regression

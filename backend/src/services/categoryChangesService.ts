@@ -3,7 +3,7 @@ import { categorize } from '../domain/categorization/categorize.js';
 import { computeCategoryChanges, type CategoryChange } from '../domain/categoryChanges/computeCategoryChanges.js';
 import { comparisonWindows } from '../domain/comparison/compareMonths.js';
 import { convertAmountCents } from '../domain/currency/convertAmount.js';
-import { getRates } from './currencyConversionService.js';
+import { getRatesWithFallback } from './currencyConversionService.js';
 import type { FetchRates } from './frankfurterClient.js';
 import { mostCommonCurrency } from './monthlyComparisonService.js';
 
@@ -12,6 +12,7 @@ export type CategoryChanges = {
   currency: string;
   hasTransactions: boolean;
   changes: CategoryChange[];
+  ratesApproximate: boolean; // true when a day used an older cached rate because the API had none
 };
 
 const DEFAULT_CURRENCY = 'EUR';
@@ -31,6 +32,7 @@ export async function getCategoryChanges(
       currency: requestedCurrency?.toUpperCase() ?? DEFAULT_CURRENCY,
       hasTransactions: false,
       changes: [],
+      ratesApproximate: false,
     };
   }
 
@@ -46,11 +48,17 @@ export async function getCategoryChanges(
   const converted = (
     await Promise.all(
       [...rowsByCurrency.entries()].map(async ([from, group]) => {
-        const rates = await getRates(from, currency, group.map((r) => r.date), fetchRates);
+        const { rates, approximateDays } = await getRatesWithFallback(
+          from,
+          currency,
+          group.map((r) => r.date),
+          fetchRates,
+        );
         return group.map((r) => ({
           date: r.date,
           category: categorize(r),
           amountCents: convertAmountCents(r.amountCents, rates.get(r.date)!),
+          approximate: approximateDays.has(r.date),
         }));
       }),
     )
@@ -64,5 +72,6 @@ export async function getCategoryChanges(
     currency,
     hasTransactions: true,
     changes: computeCategoryChanges(within(previous), within(current)),
+    ratesApproximate: converted.some((c) => c.approximate),
   };
 }

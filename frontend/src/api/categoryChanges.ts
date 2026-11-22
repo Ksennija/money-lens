@@ -9,6 +9,7 @@ export type CategoryChanges = {
   currency: string;
   hasTransactions: boolean;
   changes: CategoryChange[]; // already ranked by size, largest first
+  ratesApproximate: boolean; // some amounts use an older exchange rate
 };
 
 export type CategoryChangesResult =
@@ -56,6 +57,7 @@ export async function getCategoryChanges(): Promise<CategoryChangesResult> {
           currency: body.currency,
           hasTransactions: body.hasTransactions,
           changes,
+          ratesApproximate: body.ratesApproximate === true,
         },
       };
     }

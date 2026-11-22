@@ -9,7 +9,7 @@ import {
 } from '../domain/comparison/compareMonths.js';
 import { categorize } from '../domain/categorization/categorize.js';
 import { convertAmountCents } from '../domain/currency/convertAmount.js';
-import { getRates } from './currencyConversionService.js';
+import { getRatesWithFallback } from './currencyConversionService.js';
 import { resolveMonth } from './resolveMonth.js';
 import type { FetchRates } from './frankfurterClient.js';
 
@@ -20,6 +20,7 @@ export type MonthlyComparison = {
   current: Totals;
   previous: Totals;
   change: Change;
+  ratesApproximate: boolean; // true when a day used an older cached rate because the API had none
 };
 
 const DEFAULT_CURRENCY = 'EUR';
@@ -56,10 +57,16 @@ export async function getMonthlyComparison(
   const converted = (
     await Promise.all(
       [...rowsByCurrency.entries()].map(async ([from, group]) => {
-        const rates = await getRates(from, currency, group.map((r) => r.date), fetchRates);
+        const { rates, approximateDays } = await getRatesWithFallback(
+          from,
+          currency,
+          group.map((r) => r.date),
+          fetchRates,
+        );
         return group.map((r) => ({
           month: r.date.slice(0, 7),
           amountCents: convertAmountCents(r.amountCents, rates.get(r.date)!),
+          approximate: approximateDays.has(r.date),
           // Money in that is not income (a refund) gives spending back instead of adding income.
           isRefund: r.amountCents > 0 && categorize(r) !== 'income',
         }));
@@ -84,5 +91,6 @@ export async function getMonthlyComparison(
     current: currentTotals,
     previous: previousTotals,
     change: compareTotals(currentTotals, previousTotals),
+    ratesApproximate: converted.some((c) => c.approximate),
   };
 }

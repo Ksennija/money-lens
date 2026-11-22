@@ -67,6 +67,19 @@ describe("InsightsPage", () => {
     expect(screen.getByRole("cell", { name: "Decrease €25" })).not.toBeNull();
   });
 
+  it("shows a notice above the table when some amounts use an older exchange rate (Criterion 8)", async () => {
+    mockApi({
+      "/api/category-changes": [{ status: 200, body: { ...WITH_CHANGES.body, ratesApproximate: true } }],
+    });
+
+    render(<InsightsPage />);
+
+    expect((await screen.findByRole("note")).textContent).toBe(
+      "Some amounts use an older exchange rate because current rates are unavailable."
+    );
+    expect(screen.getByRole("table")).not.toBeNull();
+  });
+
   it("shows 'No spending changes…' when no category changed by 1 euro or more (Test Case 16)", async () => {
     mockApi({ "/api/category-changes": [NO_CHANGES] });
 

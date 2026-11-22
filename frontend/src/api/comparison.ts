@@ -7,6 +7,7 @@ export type Comparison = {
   current: Totals;
   previous: Totals;
   change: Totals; // current minus previous
+  ratesApproximate: boolean; // some amounts use an older exchange rate
 };
 
 export type ComparisonResult =
@@ -60,6 +61,7 @@ export async function getComparison(month?: string): Promise<ComparisonResult> {
           current,
           previous,
           change,
+          ratesApproximate: body.ratesApproximate === true,
         },
       };
     }
