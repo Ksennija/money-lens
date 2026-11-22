@@ -82,6 +82,63 @@ describe('getMonthlyComparison', () => {
     expect(result.current).toEqual({ spendingCents: 3500, incomeCents: 300000, netCents: 296500 });
   });
 
+  it('reduces spending by a refund from a merchant with a rule, not by a refund word (Test Case 2)', async () => {
+    await prisma.transaction.createMany({
+      data: [
+        tx(userId, '2026-08-01', 300000, HOME, 'Acme GmbH', 'Salary'),
+        tx(userId, '2026-08-10', 1899, HOME, 'Amazon', 'Order 123'),
+      ],
+    });
+
+    const result = await getMonthlyComparison(userId, '2026-08', HOME, fakeApi({}).fetchRates);
+
+    expect(result.current).toEqual({ spendingCents: -1899, incomeCents: 300000, netCents: 301899 });
+  });
+
+  it('reports negative spending when refunds are higher than the purchases (Test Case 5)', async () => {
+    await prisma.transaction.createMany({
+      data: [
+        tx(userId, '2026-08-05', -1000, HOME, 'Local Shop', 'Purchase'),
+        tx(userId, '2026-08-10', 2500, HOME, 'Local Shop', 'Refund'),
+      ],
+    });
+
+    const result = await getMonthlyComparison(userId, '2026-08', HOME, fakeApi({}).fetchRates);
+
+    expect(result.current).toEqual({ spendingCents: -1500, incomeCents: 0, netCents: 1500 });
+  });
+
+  it('converts a foreign-currency refund before it reduces spending (Test Case 7)', async () => {
+    await prisma.transaction.createMany({
+      data: [
+        tx(userId, '2026-08-05', -2000, HOME, 'Local Shop', 'Purchase'),
+        tx(userId, '2026-08-12', 1000, FOREIGN, 'Local Shop', 'Refund'),
+      ],
+    });
+    const api = fakeApi({ '2026-08-12': 0.9 });
+
+    const result = await getMonthlyComparison(userId, '2026-08', HOME, api.fetchRates);
+
+    expect(result.current).toEqual({ spendingCents: 1100, incomeCents: 0, netCents: -1100 });
+  });
+
+  it('compares the spending after refunds with the previous month (Test Case 8)', async () => {
+    await prisma.transaction.createMany({
+      data: [
+        tx(userId, '2026-07-20', -4000, HOME, 'Local Shop', 'Purchase'),
+        tx(userId, '2026-08-05', -5000, HOME, 'Local Shop', 'Purchase'),
+        tx(userId, '2026-08-10', 1500, HOME, 'Local Shop', 'Refund'),
+      ],
+    });
+
+    const result = await getMonthlyComparison(userId, '2026-08', HOME, fakeApi({}).fetchRates);
+
+    expect(result.previous.spendingCents).toBe(4000);
+    expect(result.current.spendingCents).toBe(3500);
+    expect(result.change.spendingCents).toBe(-500);
+    expect(result.change.spendingPercent).toBe(-12.5);
+  });
+
   it('does not call the API again once the rates are cached', async () => {
     await prisma.transaction.createMany({ data: [tx(userId, '2026-08-12', -1000, FOREIGN)] });
     const api = fakeApi({ '2026-08-12': 3 });
