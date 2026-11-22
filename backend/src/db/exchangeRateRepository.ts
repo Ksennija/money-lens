@@ -19,6 +19,21 @@ export async function findRates(
   return rows.map((row) => ({ date: row.date.toISOString().slice(0, 10), rate: row.rate }));
 }
 
+// The newest stored rate dated from earliestDate (inclusive) up to, but not including, date.
+export async function findLatestRateBefore(
+  base: string,
+  quote: string,
+  date: string,
+  earliestDate: string,
+): Promise<StoredRate | null> {
+  const row = await prisma.exchangeRate.findFirst({
+    where: { base, quote, date: { gte: toDate(earliestDate), lt: toDate(date) } },
+    orderBy: { date: 'desc' },
+    select: { date: true, rate: true },
+  });
+  return row ? { date: row.date.toISOString().slice(0, 10), rate: row.rate } : null;
+}
+
 // Rates already stored are kept, so concurrent requests for the same day cannot conflict.
 export async function saveRates(base: string, quote: string, rates: StoredRate[]): Promise<void> {
   if (rates.length === 0) return;
