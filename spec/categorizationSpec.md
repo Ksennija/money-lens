@@ -4,7 +4,7 @@ Transactions are categorized automatically
 
 ## Context
 
-Money Lens exists to show someone who earns enough why they do not save. For that, the user has to see where the money goes, not only how much. Today every imported transaction is just a counterparty, a text and an amount (`transactionsListSpec.md`). This ticket puts every transaction into one spending category by keyword rules, and shows the category in the transactions list. `CLAUDE.md` asks for this to be done consistently: every transaction gets a category, and what matches no rule goes to "other". The category filter is the next ticket and builds on this one.
+SpendWise exists to show someone who earns enough why they do not save. For that, the user has to see where the money goes, not only how much. Today every imported transaction is just a counterparty, a text and an amount (`transactionsListSpec.md`). This ticket puts every transaction into one spending category by keyword rules, and shows the category in the transactions list. `CLAUDE.md` asks for this to be done consistently: every transaction gets a category, and what matches no rule goes to "other". The category filter is the next ticket and builds on this one.
 
 ## Scope
 
@@ -17,20 +17,20 @@ Money Lens exists to show someone who earns enough why they do not save. For tha
 
 ## Categories
 
-| Id              | Shown as      | What goes in                                  |
-| --------------- | ------------- | --------------------------------------------- |
+| Id              | Shown as      | What goes in                                   |
+| --------------- | ------------- | ---------------------------------------------- |
 | `income`        | Income        | Salary and money received (e.g. reimbursement) |
-| `housing`       | Housing       | Rent                                          |
-| `utilities`     | Utilities     | Electricity and similar bills                 |
-| `groceries`     | Groceries     | Supermarkets                                  |
-| `eating-out`    | Eating out    | Cafés and restaurants                         |
-| `subscriptions` | Subscriptions | Streaming and similar                         |
-| `health`        | Health        | Gym and pharmacy                              |
-| `transport`     | Transport     | Trains and fuel                               |
-| `shopping`      | Shopping      | Online and clothing shops                     |
-| `entertainment` | Entertainment | Cinema and events                             |
-| `fees`          | Fees          | Bank fees                                     |
-| `other`         | Other         | Everything that matches no rule               |
+| `housing`       | Housing       | Rent                                           |
+| `utilities`     | Utilities     | Electricity and similar bills                  |
+| `groceries`     | Groceries     | Supermarkets                                   |
+| `eating-out`    | Eating out    | Cafés and restaurants                          |
+| `subscriptions` | Subscriptions | Streaming and similar                          |
+| `health`        | Health        | Gym and pharmacy                               |
+| `transport`     | Transport     | Trains and fuel                                |
+| `shopping`      | Shopping      | Online and clothing shops                      |
+| `entertainment` | Entertainment | Cinema and events                              |
+| `fees`          | Fees          | Bank fees                                      |
+| `other`         | Other         | Everything that matches no rule                |
 
 ## Rules
 
@@ -51,10 +51,16 @@ const rules = [
   { keywords: ["SUNRISE ESTATES", "RENT"], category: "housing" },
   { keywords: ["STADTWERKE", "ELECTRICITY"], category: "utilities" },
   { keywords: ["REWE", "EDEKA", "LIDL", "GROCERIES"], category: "groceries" },
-  { keywords: ["CAFE", "TRATTORIA", "RESTAURANT", "COFFEE"], category: "eating-out" },
+  {
+    keywords: ["CAFE", "TRATTORIA", "RESTAURANT", "COFFEE"],
+    category: "eating-out",
+  },
   { keywords: ["NETFLIX", "SPOTIFY"], category: "subscriptions" },
   { keywords: ["FITLIFE", "GYM", "APOTHEKE", "PHARMACY"], category: "health" },
-  { keywords: ["DEUTSCHE BAHN", "TRAIN", "SHELL", "FUEL"], category: "transport" },
+  {
+    keywords: ["DEUTSCHE BAHN", "TRAIN", "SHELL", "FUEL"],
+    category: "transport",
+  },
   { keywords: ["AMAZON", "ZARA", "CLOTHING"], category: "shopping" },
   { keywords: ["CINEMAXX", "CINEMA"], category: "entertainment" },
   { keywords: ["ACCOUNT FEE"], category: "fees" },
@@ -89,8 +95,15 @@ const rules = [
 - `GET /api/transactions` response gets one more field per transaction:
 
   ```json
-  { "id": "…", "date": "2026-09-30", "counterparty": "Bank", "details": "Account fee",
-    "amountCents": -490, "currency": "EUR", "category": "fees" }
+  {
+    "id": "…",
+    "date": "2026-09-30",
+    "counterparty": "Bank",
+    "details": "Account fee",
+    "amountCents": -490,
+    "currency": "EUR",
+    "category": "fees"
+  }
   ```
 
 - Data changes: none. No schema change and no migration
@@ -102,11 +115,11 @@ const rules = [
 
 ## Error cases
 
-| Case                                                | Result                                                     |
-| --------------------------------------------------- | ---------------------------------------------------------- |
-| Counterparty or details are empty or only symbols   | "other" for a negative or zero amount, "income" for a positive one, no error |
-| Very long text (the import allows long descriptions) | Categorized as normal. Matching has no timing problem for a few dozen rules |
-| Unknown category id arrives in the browser          | Shown as the id made readable, no crash                    |
+| Case                                                 | Result                                                                       |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Counterparty or details are empty or only symbols    | "other" for a negative or zero amount, "income" for a positive one, no error |
+| Very long text (the import allows long descriptions) | Categorized as normal. Matching has no timing problem for a few dozen rules  |
+| Unknown category id arrives in the browser           | Shown as the id made readable, no crash                                      |
 
 ## Acceptance criteria
 
@@ -121,20 +134,20 @@ const rules = [
 
 ### The sample file
 
-| Category      | Transactions                                                | Count |
-| ------------- | ----------------------------------------------------------- | ----- |
-| Income        | Acme salary (Aug, Sep), expense reimbursement               | 3     |
-| Housing       | Sunrise Estates rent (Aug, Sep)                             | 2     |
-| Utilities     | Stadtwerke electricity (Aug, Sep)                           | 2     |
-| Groceries     | REWE ×4, Lidl ×2                                            | 6     |
-| Eating out    | Café Luna ×4, Trattoria Roma ×2                             | 6     |
-| Subscriptions | Netflix ×2, Spotify ×2                                      | 4     |
-| Health        | FitLife gym ×2, Pharmacy Apotheke                           | 3     |
-| Transport     | Deutsche Bahn ×2, Shell fuel ×2                             | 4     |
-| Shopping      | Amazon ×2 (order and refund), Zara                          | 3     |
-| Entertainment | Cinemaxx                                                    | 1     |
-| Fees          | Bank account fee                                            | 1     |
-| Other         | Anna Weber "Transfer dinner split"                          | 1     |
+| Category      | Transactions                                  | Count |
+| ------------- | --------------------------------------------- | ----- |
+| Income        | Acme salary (Aug, Sep), expense reimbursement | 3     |
+| Housing       | Sunrise Estates rent (Aug, Sep)               | 2     |
+| Utilities     | Stadtwerke electricity (Aug, Sep)             | 2     |
+| Groceries     | REWE ×4, Lidl ×2                              | 6     |
+| Eating out    | Café Luna ×4, Trattoria Roma ×2               | 6     |
+| Subscriptions | Netflix ×2, Spotify ×2                        | 4     |
+| Health        | FitLife gym ×2, Pharmacy Apotheke             | 3     |
+| Transport     | Deutsche Bahn ×2, Shell fuel ×2               | 4     |
+| Shopping      | Amazon ×2 (order and refund), Zara            | 3     |
+| Entertainment | Cinemaxx                                      | 1     |
+| Fees          | Bank account fee                              | 1     |
+| Other         | Anna Weber "Transfer dinner split"            | 1     |
 
 ## Tests
 

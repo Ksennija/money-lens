@@ -1,5 +1,5 @@
 /**
- * Architecture boundaries for Money Lens. Run with `pnpm check:deps`.
+ * Architecture boundaries for SpendWise. Run with `pnpm check:deps`.
  *
  *   frontend/src/pages/    screens
  *   frontend/src/api/      talks to the backend (no React)
@@ -24,7 +24,8 @@ module.exports = {
     {
       name: "frontend-not-backend",
       severity: "error",
-      comment: "The browser app must not import server code. It talks to the backend over HTTP only.",
+      comment:
+        "The browser app must not import server code. It talks to the backend over HTTP only.",
       from: { path: "^frontend/" },
       to: { path: "^backend/" },
     },
@@ -45,7 +46,8 @@ module.exports = {
     {
       name: "api-no-react",
       severity: "error",
-      comment: "frontend/src/api only talks to the backend; keep it free of UI code.",
+      comment:
+        "frontend/src/api only talks to the backend; keep it free of UI code.",
       from: { path: "^frontend/src/api/", pathNot: "\\.test\\.ts$" },
       to: { path: "node_modules/(react|react-dom)/" },
     },
@@ -80,9 +82,15 @@ module.exports = {
     {
       name: "routes-not-generated-prisma",
       severity: "error",
-      comment: "Routes reach the database through backend/src/db, never straight to Prisma.",
+      comment:
+        "Routes reach the database through backend/src/db, never straight to Prisma.",
       from: { path: "^backend/src/routes/", pathNot: "\\.test\\.ts$" },
-      to: { path: ["^backend/src/generated/", "node_modules/(@prisma/[^/]+|prisma)/"] },
+      to: {
+        path: [
+          "^backend/src/generated/",
+          "node_modules/(@prisma/[^/]+|prisma)/",
+        ],
+      },
     },
     {
       name: "import-route-not-db",

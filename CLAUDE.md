@@ -1,4 +1,4 @@
-Money Lens
+SpendWise
 
 This project is for personals who earn enough, but don’t understand why they don’t save.
 

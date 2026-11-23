@@ -4,7 +4,7 @@ User can see how their spending and income changed compared to the previous mont
 
 ## Context
 
-This is the core promise of Money Lens: showing people who earn enough why they don't save. Imported transactions (see `csvImportSpec.md`) can be in different currencies, so every amount is converted to one currency with the cached daily rates from `currencyConversionSpec.md` before it is summed. All data is scoped to the logged-in user.
+This is the core promise of SpendWise: showing people who earn enough why they don't save. Imported transactions (see `csvImportSpec.md`) can be in different currencies, so every amount is converted to one currency with the cached daily rates from `currencyConversionSpec.md` before it is summed. All data is scoped to the logged-in user.
 
 This ticket covers the backend endpoint only.
 
@@ -18,19 +18,19 @@ This ticket covers the backend endpoint only.
 
 Requires a logged-in user.
 
-| Query parameter | Meaning | Default |
-| --- | --- | --- |
-| `month` | `YYYY-MM`, the month to report | The month of the user's most recent transaction, or the current month (UTC) when the user has none |
-| `currency` | Three-letter code to report in, case-insensitive | The most common currency among the user's transactions in the two months, else `EUR` |
+| Query parameter | Meaning                                          | Default                                                                                            |
+| --------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `month`         | `YYYY-MM`, the month to report                   | The month of the user's most recent transaction, or the current month (UTC) when the user has none |
+| `currency`      | Three-letter code to report in, case-insensitive | The most common currency among the user's transactions in the two months, else `EUR`               |
 
-| Case | Status | `code` |
-| --- | --- | --- |
-| Not logged in | 401 | `unauthenticated` |
-| `month` is not `YYYY-MM` with a real month | 400 | `invalid-month` |
-| `currency` is not three letters, or the rate service does not support a currency involved | 400 | `invalid-currency` |
-| Exchange rates could not be obtained, and no older stored rate can stand in for the missing day (see `currencyConversionSpec.md`, Fallback) | 502 | `rates-unavailable` |
-| Success, including months with no transactions | 200 | `comparison` |
-| Unexpected failure | 500 | `server-error` |
+| Case                                                                                                                                        | Status | `code`              |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------------- |
+| Not logged in                                                                                                                               | 401    | `unauthenticated`   |
+| `month` is not `YYYY-MM` with a real month                                                                                                  | 400    | `invalid-month`     |
+| `currency` is not three letters, or the rate service does not support a currency involved                                                   | 400    | `invalid-currency`  |
+| Exchange rates could not be obtained, and no older stored rate can stand in for the missing day (see `currencyConversionSpec.md`, Fallback) | 502    | `rates-unavailable` |
+| Success, including months with no transactions                                                                                              | 200    | `comparison`        |
+| Unexpected failure                                                                                                                          | 500    | `server-error`      |
 
 Success body:
 
@@ -40,10 +40,19 @@ Success body:
   "month": "2026-08",
   "previousMonth": "2026-07",
   "currency": "EUR",
-  "current":  { "spendingCents": 4600, "incomeCents": 30300, "netCents": 25700 },
-  "previous": { "spendingCents": 2000, "incomeCents": 30000, "netCents": 28000 },
-  "change":   { "spendingCents": 2600, "incomeCents": 300, "netCents": -2300,
-                "spendingPercent": 130, "incomePercent": 1 },
+  "current": { "spendingCents": 4600, "incomeCents": 30300, "netCents": 25700 },
+  "previous": {
+    "spendingCents": 2000,
+    "incomeCents": 30000,
+    "netCents": 28000
+  },
+  "change": {
+    "spendingCents": 2600,
+    "incomeCents": 300,
+    "netCents": -2300,
+    "spendingPercent": 130,
+    "incomePercent": 1
+  },
   "ratesApproximate": false
 }
 ```

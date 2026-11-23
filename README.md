@@ -134,7 +134,7 @@ Optional: `TRUST_PROXY` and `DB_POOL_MAX` (see `backend/.env.example`).
 2. **After `pnpm dev`:** the terminal shows two labelled streams, `[frontend]` with the Vite address and `[backend]` with the line `Backend listening on http://localhost:3000`. Neither shows an error.
 3. **In the browser** at <http://localhost:5173>:
    - You see a navigation bar with **Home**, **Sign up** and **Sign in**, and a **Home Page**.
-   - Open **Sign up**, create an account with an email and password. You land on a page titled **Money Lens** with `Logged in as <your email>`, and the navigation bar now has **Sign out**.
+   - Open **Sign up**, create an account with an email and password. You land on a page titled **SpendWise** with `Logged in as <your email>`, and the navigation bar now has **Sign out**.
    - Under **Import transactions**, choose `spec/samples/bank-export-sample.csv` and press **Import**. A line like `N imported, 0 duplicates skipped, 0 rows rejected` appears (the sample has 36 data rows). Importing the same file again moves the imported rows to the duplicates count.
    - The overview above it shows a table with **Income**, **Spent** and **Saved** for the latest month, with a change against the previous month. **Transactions** lists the rows with their categories, and **Insights** shows which categories changed.
 4. **If something is wrong:**

@@ -4,7 +4,7 @@ User can import banking transactions from a CSV file
 
 ## Context
 
-Money Lens needs transaction data to categorize spending and compare months. CSV import is the simplest source: no third-party accounts, no stored bank credentials, and it works with any bank that offers a CSV export. All data is scoped to the logged-in user, so this builds on login.
+SpendWise needs transaction data to categorize spending and compare months. CSV import is the simplest source: no third-party accounts, no stored bank credentials, and it works with any bank that offers a CSV export. All data is scoped to the logged-in user, so this builds on login.
 
 ## Scope
 
@@ -31,14 +31,14 @@ Based on `spec/samples/bank-export-sample.csv`.
 
 Multipart upload, field name `file`. Requires a logged-in user.
 
-| Case | Status | `code` |
-| --- | --- | --- |
-| Not logged in | 401 | `unauthenticated` |
-| No file, or not a CSV | 400 | `invalid-file` |
-| File over the size or row limit | 413 | `file-too-large` |
-| Header missing a required column | 400 | `missing-columns` (lists the missing names) |
-| Imported (even if some rows were rejected or skipped) | 200 | `imported` |
-| Unexpected failure | 500 | `server-error` |
+| Case                                                  | Status | `code`                                      |
+| ----------------------------------------------------- | ------ | ------------------------------------------- |
+| Not logged in                                         | 401    | `unauthenticated`                           |
+| No file, or not a CSV                                 | 400    | `invalid-file`                              |
+| File over the size or row limit                       | 413    | `file-too-large`                            |
+| Header missing a required column                      | 400    | `missing-columns` (lists the missing names) |
+| Imported (even if some rows were rejected or skipped) | 200    | `imported`                                  |
+| Unexpected failure                                    | 500    | `server-error`                              |
 
 Success body: `{ code: 'imported', imported: n, duplicates: n, rejected: [{ row, reason }] }`.
 

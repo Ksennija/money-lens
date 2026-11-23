@@ -4,7 +4,7 @@ User can see a transactions overview of income, spent and saved for a month
 
 ## Context
 
-After importing bank transactions (`csvImportSpec.md`), the user needs the whole financial picture before looking at detailed spending. A month's overview shows how much came in, how much went out and how much was left, and whether that is better or worse than the month before. This is the first screen of Money Lens' core promise: showing why someone who earns enough does not save. It builds on the comparison endpoint (`monthComparisonSpec.md`) and is shown to logged-in users only.
+After importing bank transactions (`csvImportSpec.md`), the user needs the whole financial picture before looking at detailed spending. A month's overview shows how much came in, how much went out and how much was left, and whether that is better or worse than the month before. This is the first screen of SpendWise' core promise: showing why someone who earns enough does not save. It builds on the comparison endpoint (`monthComparisonSpec.md`) and is shown to logged-in users only.
 
 ## Scope
 

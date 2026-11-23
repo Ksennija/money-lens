@@ -7,7 +7,7 @@ type AuthenticatedPageProps = { user: CurrentUser };
 export default function AuthenticatedPage({ user }: AuthenticatedPageProps) {
   return (
     <main>
-      <h1>Money Lens</h1>
+      <h1>SpendWise</h1>
       <p>Logged in as {user.email}</p>
       <OverviewPage />
       <ImportPage />
