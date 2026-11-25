@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import NavBar from "./components/NavBar";
+import NavBar from "./components/NavBar/NavBar";
 import InsightsPage from "./pages/InsightsPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import TransactionsPage from "./pages/TransactionsPage";

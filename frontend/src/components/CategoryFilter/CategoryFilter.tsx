@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { CATEGORIES } from '../lib/categories';
+import { CATEGORIES } from '../../lib/categories';
 
 type Props = {
   selected: string[]; // category ids; empty means all

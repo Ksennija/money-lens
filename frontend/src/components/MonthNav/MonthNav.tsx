@@ -1,4 +1,4 @@
-import { nextMonth } from '../lib/months';
+import { nextMonth } from '../../lib/months';
 
 type MonthNavProps = {
   month: string; // YYYY-MM shown now

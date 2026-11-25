@@ -3,7 +3,7 @@ import {
   getCategoryChanges,
   type CategoryChanges as CategoryChangesData,
 } from "../api/categoryChanges";
-import CategoryChanges from "../components/CategoryChanges";
+import CategoryChanges from "../components/CategoryChanges/CategoryChanges";
 import RatesNotice from "../components/RatesNotice/RatesNotice";
 
 type View =
