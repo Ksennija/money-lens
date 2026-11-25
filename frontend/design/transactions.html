@@ -14,12 +14,6 @@
   body { margin: 0; background: var(--canvas); color: var(--ink); font: 15px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   button, input, select { font: inherit; }
   .app { max-width: 1120px; margin: 36px auto; padding: 0 24px 48px; }
-  .topbar { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:17px 22px; }
-  .brand { display:flex; align-items:center; gap:11px; font-weight:750; font-size:17px; }
-  .logo { width:36px; height:36px; display:grid; place-items:center; color:white; background:var(--green); border-radius:11px; font-weight:800; }
-  nav { display:flex; gap:28px; color:var(--muted); font-size:14px; }
-  nav .active { color:var(--green); font-weight:700; }
-  .avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:#edf0ed; font-weight:700; }
   .heading { display:flex; justify-content:space-between; align-items:end; margin:34px 0 22px; }
   h1 { margin:0 0 5px; font-size:30px; letter-spacing:-.8px; }
   .sub { color:var(--muted); margin:0; }
@@ -67,7 +61,6 @@
   .submit { width:100%; margin-top:12px; }
   @media (max-width:700px) {
     .app { margin:16px auto; padding:0 13px 30px; }
-    .topbar { padding:13px 15px; } nav { gap:13px; font-size:12px; }
     .heading { align-items:start; flex-direction:column; gap:13px; margin:25px 0 17px; }
     h1 { font-size:26px; } .summary { gap:8px; }
     .card { padding:13px 11px; } .card-label { font-size:11px; gap:5px; }
@@ -76,17 +69,11 @@
     .transaction { padding:12px 15px; gap:10px; } .merchant-icon { width:37px; height:37px; }
     .day { padding-left:15px; } .money { font-size:13px; }
   }
-  @media (max-width:420px) { nav { gap:9px; } nav span:last-child { display:none; } .amount { font-size:16px; } }
+  @media (max-width:420px) { .amount { font-size:16px; } }
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="topbar">
-    <div class="brand"><div class="logo">S</div> SpendWise</div>
-    <nav><span>Overview</span><span class="active">Transactions</span><span>Insights</span><span>Settings</span></nav>
-    <div class="avatar">JD</div>
-  </header>
-
   <section class="heading">
     <div><h1>Transactions</h1><p class="sub">Manage and track your money</p></div>
     <div class="month">November 2026&nbsp; ▾</div>
@@ -141,7 +128,7 @@
 </dialog>
 
 <script>
-  const modal = document.getElementById('transactionModal');
+  const modal =document.getElementById('transactionModal');
   document.getElementById('openModal').addEventListener('click', () => modal.showModal());
   document.getElementById('closeModal').addEventListener('click', () => modal.close());
   let activeType = 'all';
