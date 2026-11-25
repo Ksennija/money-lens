@@ -1,5 +1,5 @@
-import type { CategoryChange } from '../api/categoryChanges';
-import { categoryLabel } from '../lib/categories';
+import type { CategoryChange } from '../../api/categoryChanges';
+import { categoryLabel } from '../../lib/categories';
 
 type Props = {
   changes: CategoryChange[]; // already ranked by size, largest first

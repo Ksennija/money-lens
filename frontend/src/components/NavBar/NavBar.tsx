@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { logoutUser, type CurrentUser } from "../api/session";
+import { logoutUser, type CurrentUser } from "../../api/session";
 
 type NavBarProps = { user: CurrentUser | null; onLoggedOut?: () => void };
 

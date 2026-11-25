@@ -1,0 +1,10 @@
+@mixin breakpoint-down($bp) {
+  @media (max-width: $bp) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}

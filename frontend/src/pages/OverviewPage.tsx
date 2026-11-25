@@ -1,5 +1,5 @@
 import { getComparison, type Comparison, type Totals } from "../api/comparison";
-import MonthNav from "../components/MonthNav";
+import MonthNav from "../components/MonthNav/MonthNav";
 import RatesNotice from "../components/RatesNotice/RatesNotice";
 import {
   useMonthNavigation,

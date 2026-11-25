@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import NavBar from "./components/NavBar";
+import NavBar from "./components/NavBar/NavBar";
 import InsightsPage from "./pages/InsightsPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import TransactionsPage from "./pages/TransactionsPage";
@@ -8,7 +8,6 @@ import { getCurrentUser, type CurrentUser } from "./api/session";
 import AuthenticatedPage from "./pages/AuthenticatedPage";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
-import "./App.css";
 
 type SessionState =
   | { status: "loading" }
