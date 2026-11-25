@@ -13,20 +13,18 @@ function renderAt(path: string) {
 }
 
 describe("NavBar", () => {
-  it("shows Home, Sign up and Sign in links", () => {
+  it("shows only Sign up and Sign in links", () => {
     renderAt("/");
 
     const nav = screen.getByRole("navigation");
-    expect(nav.querySelectorAll("a")).toHaveLength(3);
-    expect(
-      screen.getByRole("link", { name: "Home" }).getAttribute("href"),
-    ).toBe("/");
+    expect(nav.querySelectorAll("a")).toHaveLength(2);
     expect(
       screen.getByRole("link", { name: "Sign up" }).getAttribute("href"),
     ).toBe("/signup");
     expect(
       screen.getByRole("link", { name: "Sign in" }).getAttribute("href"),
     ).toBe("/signin");
+    expect(screen.queryByRole("link", { name: "Home" })).toBeNull();
   });
 
   it("marks only the link for the current page", () => {
@@ -38,21 +36,20 @@ describe("NavBar", () => {
         .getAttribute("aria-current"),
     ).toBe("page");
     expect(
-      screen.getByRole("link", { name: "Home" }).getAttribute("aria-current"),
-    ).toBeNull();
-    expect(
       screen
         .getByRole("link", { name: "Sign up" })
         .getAttribute("aria-current"),
     ).toBeNull();
   });
 
-  it("marks Home on / only", () => {
+  it("marks no link on /", () => {
     renderAt("/");
 
     expect(
-      screen.getByRole("link", { name: "Home" }).getAttribute("aria-current"),
-    ).toBe("page");
+      screen
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("aria-current") === "page"),
+    ).toHaveLength(0);
   });
 });
 
@@ -79,16 +76,14 @@ describe("NavBar when signed in", () => {
     })) as unknown as typeof fetch;
   }
 
-  it("shows Home, Overview, Transactions, Insights, History and Sign out, but not Sign up or Sign in", () => {
+  it("shows Overview, Transactions, Insights and Sign out, but not Home, History, Sign up or Sign in", () => {
     renderSignedIn("/overview");
 
     const names = screen.getAllByRole("link").map((link) => link.textContent);
     expect(names).toEqual([
-      "Home",
       "Overview",
       "Transactions",
       "Insights",
-      "History",
     ]);
     expect(screen.getByRole("button", { name: "Sign out" })).not.toBeNull();
     expect(screen.queryByRole("link", { name: /sign (up|in)/i })).toBeNull();

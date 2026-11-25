@@ -8,7 +8,6 @@ const PRIVATE_LINKS = [
   { to: "/overview", label: "Overview" },
   { to: "/transactions", label: "Transactions" },
   { to: "/insights", label: "Insights" },
-  { to: "/history", label: "History" },
 ];
 
 // NavLink sets aria-current="page" on the link for the current URL.
@@ -33,9 +32,6 @@ export default function NavBar({ user, onLoggedOut }: NavBarProps) {
 
   return (
     <nav aria-label="Main">
-      <NavLink to="/" end>
-        Home
-      </NavLink>
       {user ? (
         <>
           {PRIVATE_LINKS.map(({ to, label }) => (
