@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SpendWise — Sign up</title><style>
+:root{--ink:#202b27;--muted:#5d6a63;--line:#e7ebe8;--bg:#f5f7f5;--green:#24483b;--soft:#e9f3ed;--red:#bd554c}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;padding:24px 16px}
+a{color:var(--green);font-weight:700}.wrap{width:min(420px,100%)}
+.brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:22px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none}.logo{display:inline-grid;place-items:center;background:var(--green);color:white;border-radius:10px;width:34px;height:34px}
+.card{position:relative;background:white;border:1px solid var(--line);border-radius:16px;padding:28px}.close{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:36px;height:36px;border-radius:9px;color:var(--muted);font-size:24px;line-height:1;text-decoration:none;font-weight:400}.close:hover{background:var(--soft);color:var(--green)}
+h1{font-size:26px;letter-spacing:-.7px;margin:0 0 4px;padding-right:36px}.sub{color:var(--muted);margin:0 0 20px}
+.field{display:grid;gap:6px;margin:15px 0}.field label{font-size:13px;font-weight:700;color:#53615a}
+input{font:inherit;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}input:focus-visible,.btn:focus-visible,a:focus-visible{outline:3px solid #24483b55;outline-offset:2px}input:focus{border-color:var(--green)}
+.btn{font:inherit;width:100%;margin-top:8px;background:var(--green);color:white;border:0;border-radius:9px;padding:12px 15px;font-weight:700;cursor:pointer}.btn:hover{background:#1b362c}.btn:disabled{opacity:.6;cursor:not-allowed}
+.message{margin:16px 0 0;padding:12px 14px;border-radius:9px;font-size:13px}.error{background:#fbeeec;color:#8f3a33}.success{background:var(--soft);color:var(--green)}.message[hidden]{display:none}
+.switch{text-align:center;color:var(--muted);font-size:14px;margin:18px 0 0}
+@media(max-width:430px){.card{padding:22px 18px}h1{font-size:24px}}
+</style></head><body><main class="wrap">
+<a class="brand" href="index.html"><span class="logo">S</span>SpendWise</a>
+<form class="card" id="form" novalidate>
+<a class="close" href="index.html" aria-label="Close and go back to the home page">×</a>
+<h1>Sign up</h1><p class="sub">Create your account to start understanding your money.</p>
+<div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+<div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" required></div>
+<button class="btn" type="submit">Sign up</button>
+<p class="message success" role="status" id="status" hidden>Account created. You can sign in now.</p>
+<p class="message error" role="alert" id="error" hidden>Something went wrong</p>
+<p class="switch">Already have an account? <a href="signin.html">Sign in</a></p>
+</form></main>
+<script>document.getElementById("form").addEventListener("submit",e=>{e.preventDefault();document.getElementById("status").hidden=false})</script>
+</body></html>
