@@ -131,3 +131,86 @@ describe("NavBar when signed in", () => {
     expect(onLoggedOut).not.toHaveBeenCalled();
   });
 });
+
+describe("NavBar mobile menu", () => {
+  function renderMenu() {
+    render(
+      <MemoryRouter initialEntries={["/overview"]}>
+        <NavBar user={{ email: "user@example.com" }} />
+        <button type="button">Outside</button>
+      </MemoryRouter>,
+    );
+    return screen.getByRole("button", { name: "Toggle navigation" });
+  }
+
+  it("starts closed and points at the navigation panel", () => {
+    const menu = renderMenu();
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(menu.textContent).toBe("☰");
+    expect(menu.getAttribute("aria-controls")).toBe(
+      screen.getByRole("navigation").id,
+    );
+  });
+
+  it("opens on click and shows × while open", async () => {
+    const menu = renderMenu();
+
+    await userEvent.click(menu);
+
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+    expect(menu.textContent).toBe("×");
+  });
+
+  it.each([
+    ["Enter", "{Enter}"],
+    ["Space", " "],
+  ])("opens and closes with %s", async (_name, key) => {
+    const menu = renderMenu();
+    menu.focus();
+
+    await userEvent.keyboard(key);
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+
+    await userEvent.keyboard(key);
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes on Escape and returns focus to the button", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+    screen.getByRole("link", { name: "Insights" }).focus();
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(menu);
+  });
+
+  it("closes on a click outside the header", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+
+    await userEvent.click(screen.getByRole("button", { name: "Outside" }));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes after a link is chosen", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+
+    await userEvent.click(screen.getByRole("link", { name: "Transactions" }));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("stays open when the panel itself is clicked, not a link", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+
+    await userEvent.click(screen.getByRole("navigation"));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+  });
+});
