@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react';
-import { getCategoryChanges, type CategoryChanges as CategoryChangesData } from '../api/categoryChanges';
-import CategoryChanges from '../components/CategoryChanges';
-import RatesNotice from '../components/RatesNotice';
+import { useEffect, useState } from "react";
+import {
+  getCategoryChanges,
+  type CategoryChanges as CategoryChangesData,
+} from "../api/categoryChanges";
+import CategoryChanges from "../components/CategoryChanges";
+import RatesNotice from "../components/RatesNotice/RatesNotice";
 
 type View =
-  | { status: 'loading' }
-  | { status: 'ready'; data: CategoryChangesData }
-  | { status: 'error'; message: string };
+  | { status: "loading" }
+  | { status: "ready"; data: CategoryChangesData }
+  | { status: "error"; message: string };
 
-const RATES_UNAVAILABLE_MESSAGE = 'Exchange rates are currently unavailable. Try again in a moment.';
+const RATES_UNAVAILABLE_MESSAGE =
+  "Exchange rates are currently unavailable. Try again in a moment.";
 
 export default function InsightsPage() {
-  const [view, setView] = useState<View>({ status: 'loading' });
+  const [view, setView] = useState<View>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -19,10 +23,13 @@ export default function InsightsPage() {
     getCategoryChanges().then((result) => {
       if (cancelled) return;
       if (result.ok) {
-        setView({ status: 'ready', data: result.categoryChanges });
+        setView({ status: "ready", data: result.categoryChanges });
       } else {
-        const message = result.code === 'rates-unavailable' ? RATES_UNAVAILABLE_MESSAGE : result.message;
-        setView({ status: 'error', message });
+        const message =
+          result.code === "rates-unavailable"
+            ? RATES_UNAVAILABLE_MESSAGE
+            : result.message;
+        setView({ status: "error", message });
       }
     });
     return () => {
@@ -31,7 +38,7 @@ export default function InsightsPage() {
   }, [attempt]);
 
   function retry() {
-    setView({ status: 'loading' });
+    setView({ status: "loading" });
     setAttempt((n) => n + 1);
   }
 
@@ -39,11 +46,11 @@ export default function InsightsPage() {
     <main>
       <h1>Insights</h1>
 
-      {view.status === 'loading' && <p role="status">Loading…</p>}
+      {view.status === "loading" && <p role="status">Loading…</p>}
 
-      {view.status === 'error' && (
+      {view.status === "error" && (
         <>
-          <p role="alert" style={{ color: 'crimson' }}>
+          <p role="alert" style={{ color: "crimson" }}>
             {view.message}
           </p>
           <button type="button" onClick={retry}>
@@ -52,17 +59,26 @@ export default function InsightsPage() {
         </>
       )}
 
-      {view.status === 'ready' && view.data.ratesApproximate && <RatesNotice />}
+      {view.status === "ready" && view.data.ratesApproximate && <RatesNotice />}
 
-      {view.status === 'ready' && !view.data.hasTransactions && <p>No transactions yet this month.</p>}
-
-      {view.status === 'ready' && view.data.hasTransactions && view.data.changes.length === 0 && (
-        <p>No spending changes compared to the same days last month.</p>
+      {view.status === "ready" && !view.data.hasTransactions && (
+        <p>No transactions yet this month.</p>
       )}
 
-      {view.status === 'ready' && view.data.hasTransactions && view.data.changes.length > 0 && (
-        <CategoryChanges changes={view.data.changes} currency={view.data.currency} />
-      )}
+      {view.status === "ready" &&
+        view.data.hasTransactions &&
+        view.data.changes.length === 0 && (
+          <p>No spending changes compared to the same days last month.</p>
+        )}
+
+      {view.status === "ready" &&
+        view.data.hasTransactions &&
+        view.data.changes.length > 0 && (
+          <CategoryChanges
+            changes={view.data.changes}
+            currency={view.data.currency}
+          />
+        )}
     </main>
   );
 }
