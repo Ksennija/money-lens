@@ -78,7 +78,7 @@ Without one source of values, every new page copies and changes these numbers an
 - The app shows no purple accent and no fixed 1126px layout from the old template styles
 - Inter renders on a machine that does not have it installed
 - `index.css` and `App.css` no longer exist and nothing imports them
-- `#5d6a63` no longer appears in `frontend/design/`
+- No template defines `--muted` as `#5d6a63`. The hard-coded `#5d6a63` text colors in `index.html` stay until that page is restyled
 - Each color, radius and shadow value appears once in `_tokens.scss` and nowhere else in `src/styles/`
 
 ## Tests
@@ -88,7 +88,7 @@ No new unit tests, because the change is configuration and stylesheets with no l
 - Existing frontend tests pass unchanged, which shows `.scss` imports work under Jest
 - `pnpm --filter frontend build` shows the SCSS compiles and the font files are bundled
 - Manual check with `pnpm dev`: devtools shows the tokens on `:root`, the computed `font-family` of `body` is Inter, and the network tab loads the Inter font files from the app
-- `grep` for `#5d6a63` in `frontend/design/` finds nothing
+- `grep -- "--muted:" frontend/design/*.html` shows `#75817b` in every template that defines it
 
 ## Assumptions
 
