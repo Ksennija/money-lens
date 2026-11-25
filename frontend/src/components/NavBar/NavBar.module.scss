@@ -1,0 +1,212 @@
+@use "../../styles/breakpoints" as bp;
+@use "../../styles/mixins" as m;
+
+// Layout and values follow the header in frontend/design/overview.html.
+
+.wrap {
+  max-width: 1100px;
+  margin: var(--space-8) auto 0;
+  padding: 0 var(--space-5);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    margin-top: var(--space-3);
+    padding: 0 var(--space-3);
+  }
+}
+
+.top {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    padding: var(--space-3);
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-extrabold);
+  text-decoration: none;
+}
+
+.logo {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: var(--green);
+  color: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.menu {
+  display: none;
+  padding: 6px 11px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-xl);
+  line-height: 1;
+  cursor: pointer;
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    display: block;
+  }
+}
+
+.panel {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  margin-left: var(--space-6);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    display: none;
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    left: 0;
+    right: 0;
+    z-index: 10;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+    padding: var(--space-2);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+.open .panel {
+  @include m.breakpoint-down(bp.$bp-md) {
+    display: flex;
+  }
+}
+
+.links {
+  display: flex;
+  gap: var(--space-6);
+  margin: 0 auto;
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+  }
+}
+
+.link {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  text-decoration: none;
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
+
+    &:hover {
+      background: var(--soft);
+    }
+  }
+}
+
+.link.active {
+  color: var(--green);
+  font-weight: var(--weight-extrabold);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    background: var(--soft);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  // Signed out: no links, so push the buttons to the right.
+  &:first-child {
+    margin-left: auto;
+  }
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    flex-direction: column;
+    align-items: stretch;
+    margin: var(--space-2) 0 0;
+
+    &:first-child {
+      margin: 0;
+    }
+  }
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+.action.active {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--surface);
+  box-shadow: var(--shadow-button);
+
+  &:hover:not(:disabled) {
+    background: var(--green-hover);
+    border-color: var(--green-hover);
+    color: var(--surface);
+  }
+}
+
+.primary.active {
+  color: var(--surface);
+}
+
+.error {
+  margin: 0;
+  color: var(--red-text);
+  font-size: var(--text-xs);
+}

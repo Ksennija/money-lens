@@ -1,10 +1,6 @@
 // Design tokens taken from frontend/design/*.html.
 // Every value is defined once, here. Use var(--name) everywhere else.
 
-// Breakpoints cannot be CSS variables inside media queries.
-$bp-sm: 430px;
-$bp-md: 700px;
-
 :root {
   // Colors
   --ink: #202b27;

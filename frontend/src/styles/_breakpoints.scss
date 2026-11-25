@@ -1,0 +1,5 @@
+// Breakpoints cannot be CSS variables inside media queries.
+// Kept apart from _tokens.scss so a component can use them without
+// pulling the :root block into its own CSS.
+$bp-sm: 430px;
+$bp-md: 700px;

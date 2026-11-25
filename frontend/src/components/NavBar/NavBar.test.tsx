@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import NavBar from "./NavBar";
@@ -79,7 +79,13 @@ describe("NavBar when signed in", () => {
   it("shows Overview, Transactions, Insights and Sign out, but not Home, History, Sign up or Sign in", () => {
     renderSignedIn("/overview");
 
-    const names = screen.getAllByRole("link").map((link) => link.textContent);
+    const nav = screen.getByRole("navigation");
+    const names = within(nav)
+      .getAllByRole("link")
+      .map((link) => link.textContent);
+    expect(
+      screen.getByRole("link", { name: "SpendWise" }).getAttribute("href"),
+    ).toBe("/");
     expect(names).toEqual([
       "Overview",
       "Transactions",
