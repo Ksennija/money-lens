@@ -8,7 +8,6 @@ import { getCurrentUser, type CurrentUser } from "./api/session";
 import AuthenticatedPage from "./pages/AuthenticatedPage";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
-import "./App.css";
 
 type SessionState =
   | { status: "loading" }

@@ -1,0 +1,63 @@
+// Design tokens taken from frontend/design/*.html.
+// Every value is defined once, here. Use var(--name) everywhere else.
+
+// Breakpoints cannot be CSS variables inside media queries.
+$bp-sm: 430px;
+$bp-md: 700px;
+
+:root {
+  // Colors
+  --ink: #202b27;
+  --muted: #75817b;
+  --line: #e7ebe8;
+  --bg: #f5f7f5;
+  --surface: #ffffff;
+  --green: #24483b;
+  --green-hover: #1b362c;
+  --soft: #e9f3ed;
+  --positive: #27845b;
+  --red: #bd554c;
+  --red-soft: #fbeeec;
+  --red-text: #8f3a33;
+  --red-border: #e3a8a2;
+  --focus-ring: #24483b55;
+
+  // Font
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --line-height-base: 1.5;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  // Type scale
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+
+  // Radii
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 99px;
+
+  // Shadows
+  --shadow-card: 0 12px 32px #17251d1f;
+  --shadow-popover: 0 25px 65px #17251d22;
+  --shadow-button: 0 7px 16px #24483b2b;
+
+  // Spacing (4px scale)
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+}
