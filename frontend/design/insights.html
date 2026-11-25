@@ -1,10 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SpendWise — Insights</title><style>
 :root{--ink:#202b27;--muted:#75817b;--line:#e7ebe8;--bg:#f5f7f5;--green:#24483b;--soft:#e9f3ed}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
-.app{max-width:1100px;margin:32px auto;padding:0 22px 45px}.top{display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid var(--line);border-radius:17px;padding:16px 20px}
-.brand{font-weight:800;font-size:17px}.logo{display:inline-grid;place-items:center;background:var(--green);color:white;border-radius:10px;width:34px;height:34px;margin-right:8px}
-nav{display:flex;gap:24px}nav a{color:var(--muted);text-decoration:none;font-size:14px}nav a.active{color:var(--green);font-weight:800}
-.avatar{background:#edf0ed;border-radius:50%;padding:8px 11px;font-weight:700}.heading{margin:32px 0 20px;display:flex;justify-content:space-between;align-items:end}
+.app{max-width:1100px;margin:32px auto;padding:0 22px 45px}
+.heading{margin:32px 0 20px;display:flex;justify-content:space-between;align-items:end}
 h1{font-size:30px;letter-spacing:-.7px;margin:0 0 4px}h2{font-size:18px;margin:0 0 15px}.sub,.muted{color:var(--muted)}.sub{margin:0}.muted{font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.two{grid-template-columns:repeat(2,1fr)}
 .card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px}.label{font-size:13px;color:var(--muted)}.value{font-size:25px;font-weight:800;margin:8px 0}.green{color:#27845b}.red{color:#bd554c}
@@ -14,9 +12,9 @@ h1{font-size:30px;letter-spacing:-.7px;margin:0 0 4px}h2{font-size:18px;margin:0
 .notice{padding:15px;background:var(--soft);border-radius:12px;color:var(--green);font-size:13px;margin-top:18px}
 button,input,select{font:inherit}input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:white}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:13px;font-weight:700;color:#53615a}
 .btn{background:var(--green);color:white;border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}.filter{border:1px solid var(--line);background:white;border-radius:9px;padding:9px 13px;cursor:pointer}
-@media(max-width:700px){.app{margin:14px auto;padding:0 13px 30px}.top{padding:13px}.heading{margin:23px 0 16px;align-items:start;flex-direction:column;gap:10px}nav{gap:10px}nav a{font-size:12px}.grid,.two{grid-template-columns:1fr 1fr}.card{padding:14px}.value{font-size:20px}}
-@media(max-width:430px){.grid,.two{grid-template-columns:1fr}.avatar{display:none}nav{gap:8px}}
-</style></head><body><main class="app"><header class="top"><div class="brand"><span class="logo">S</span>SpendWise</div><nav><a class="" href="overview.html">Overview</a><a class="" href="transactions.html">Transactions</a><a class="active" href="insights.html">Insights</a><a class="" href="settings.html">Settings</a></nav><div class="avatar">JD</div></header><section class="heading"><div><h1>Insights</h1><p class="sub">Understand what changed and where your money goes</p></div><span class="pill">November 2026</span></section>
+@media(max-width:700px){.app{margin:14px auto;padding:0 13px 30px}.heading{margin:23px 0 16px;align-items:start;flex-direction:column;gap:10px}.grid,.two{grid-template-columns:1fr 1fr}.card{padding:14px}.value{font-size:20px}}
+@media(max-width:430px){.grid,.two{grid-template-columns:1fr}}
+</style></head><body><main class="app"><section class="heading"><div><h1>Insights</h1><p class="sub">Understand what changed and where your money goes</p></div><span class="pill">November 2026</span></section>
 <div class="grid">
 <div class="card"><div class="label">Spent this month</div><div class="value">€1,845.30</div><div class="muted">November 1–30</div></div>
 <div class="card"><div class="label">Change vs. October</div><div class="value red">+8.4%</div><div class="muted">€143.20 more</div></div>
