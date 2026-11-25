@@ -14,9 +14,6 @@ type SessionState =
   | { status: "logged-out" }
   | { status: "logged-in"; user: CurrentUser };
 
-// Private pages that only have a title for now.
-const PRIVATE_PLACEHOLDERS = [{ path: "/history", title: "History" }];
-
 function toSessionState(user: CurrentUser | null): SessionState {
   return user ? { status: "logged-in", user } : { status: "logged-out" };
 }
@@ -60,13 +57,6 @@ function App() {
           />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/insights" element={<InsightsPage />} />
-          {PRIVATE_PLACEHOLDERS.map(({ path, title }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<PlaceholderPage title={title} />}
-            />
-          ))}
           <Route path="*" element={<PlaceholderPage title="Error page" />} />
         </Routes>
       </>
@@ -91,13 +81,6 @@ function App() {
         <Route path="/overview" element={<Navigate to="/signin" replace />} />
         <Route path="/transactions" element={<Navigate to="/signin" replace />} />
         <Route path="/insights" element={<Navigate to="/signin" replace />} />
-        {PRIVATE_PLACEHOLDERS.map(({ path }) => (
-          <Route
-            key={path}
-            path={path}
-            element={<Navigate to="/signin" replace />}
-          />
-        ))}
         <Route path="*" element={<PlaceholderPage title="Error page" />} />
       </Routes>
     </>

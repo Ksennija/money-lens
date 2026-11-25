@@ -236,7 +236,7 @@ describe("App", () => {
     expect(await screen.findByRole("heading", { name: /sign in/i })).not.toBeNull();
   });
 
-  it.each(["/transactions", "/insights", "/history"])(
+  it.each(["/transactions", "/insights"])(
     "redirects a signed-out user opening %s to the sign in page",
     async (path) => {
       mockApi({ "GET /api/me": [NOT_LOGGED_IN] });
@@ -251,8 +251,11 @@ describe("App", () => {
     }
   );
 
-  it("shows the /history placeholder to a signed-in user", async () => {
-    mockApi({ "GET /api/me": [LOGGED_IN_ME] });
+  it.each([
+    ["signed-in", LOGGED_IN_ME],
+    ["signed-out", NOT_LOGGED_IN],
+  ])("shows the Error page at /history to a %s user", async (_who, me) => {
+    mockApi({ "GET /api/me": [me] });
 
     render(
       <MemoryRouter initialEntries={["/history"]}>
@@ -260,7 +263,7 @@ describe("App", () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole("heading", { name: "History" })).not.toBeNull();
+    expect(await screen.findByRole("heading", { name: "Error page" })).not.toBeNull();
   });
 
   it("shows the category changes on /insights to a signed-in user", async () => {

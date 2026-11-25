@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import NavBar from "./NavBar";
@@ -13,20 +13,18 @@ function renderAt(path: string) {
 }
 
 describe("NavBar", () => {
-  it("shows Home, Sign up and Sign in links", () => {
+  it("shows only Sign up and Sign in links", () => {
     renderAt("/");
 
     const nav = screen.getByRole("navigation");
-    expect(nav.querySelectorAll("a")).toHaveLength(3);
-    expect(
-      screen.getByRole("link", { name: "Home" }).getAttribute("href"),
-    ).toBe("/");
+    expect(nav.querySelectorAll("a")).toHaveLength(2);
     expect(
       screen.getByRole("link", { name: "Sign up" }).getAttribute("href"),
     ).toBe("/signup");
     expect(
       screen.getByRole("link", { name: "Sign in" }).getAttribute("href"),
     ).toBe("/signin");
+    expect(screen.queryByRole("link", { name: "Home" })).toBeNull();
   });
 
   it("marks only the link for the current page", () => {
@@ -38,21 +36,20 @@ describe("NavBar", () => {
         .getAttribute("aria-current"),
     ).toBe("page");
     expect(
-      screen.getByRole("link", { name: "Home" }).getAttribute("aria-current"),
-    ).toBeNull();
-    expect(
       screen
         .getByRole("link", { name: "Sign up" })
         .getAttribute("aria-current"),
     ).toBeNull();
   });
 
-  it("marks Home on / only", () => {
+  it("marks no link on /", () => {
     renderAt("/");
 
     expect(
-      screen.getByRole("link", { name: "Home" }).getAttribute("aria-current"),
-    ).toBe("page");
+      screen
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("aria-current") === "page"),
+    ).toHaveLength(0);
   });
 });
 
@@ -79,16 +76,20 @@ describe("NavBar when signed in", () => {
     })) as unknown as typeof fetch;
   }
 
-  it("shows Home, Overview, Transactions, Insights, History and Sign out, but not Sign up or Sign in", () => {
+  it("shows Overview, Transactions, Insights and Sign out, but not Home, History, Sign up or Sign in", () => {
     renderSignedIn("/overview");
 
-    const names = screen.getAllByRole("link").map((link) => link.textContent);
+    const nav = screen.getByRole("navigation");
+    const names = within(nav)
+      .getAllByRole("link")
+      .map((link) => link.textContent);
+    expect(
+      screen.getByRole("link", { name: "SpendWise" }).getAttribute("href"),
+    ).toBe("/");
     expect(names).toEqual([
-      "Home",
       "Overview",
       "Transactions",
       "Insights",
-      "History",
     ]);
     expect(screen.getByRole("button", { name: "Sign out" })).not.toBeNull();
     expect(screen.queryByRole("link", { name: /sign (up|in)/i })).toBeNull();
@@ -128,5 +129,88 @@ describe("NavBar when signed in", () => {
       "Something went wrong",
     );
     expect(onLoggedOut).not.toHaveBeenCalled();
+  });
+});
+
+describe("NavBar mobile menu", () => {
+  function renderMenu() {
+    render(
+      <MemoryRouter initialEntries={["/overview"]}>
+        <NavBar user={{ email: "user@example.com" }} />
+        <button type="button">Outside</button>
+      </MemoryRouter>,
+    );
+    return screen.getByRole("button", { name: "Toggle navigation" });
+  }
+
+  it("starts closed and points at the navigation panel", () => {
+    const menu = renderMenu();
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(menu.textContent).toBe("☰");
+    expect(menu.getAttribute("aria-controls")).toBe(
+      screen.getByRole("navigation").id,
+    );
+  });
+
+  it("opens on click and shows × while open", async () => {
+    const menu = renderMenu();
+
+    await userEvent.click(menu);
+
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+    expect(menu.textContent).toBe("×");
+  });
+
+  it.each([
+    ["Enter", "{Enter}"],
+    ["Space", " "],
+  ])("opens and closes with %s", async (_name, key) => {
+    const menu = renderMenu();
+    menu.focus();
+
+    await userEvent.keyboard(key);
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+
+    await userEvent.keyboard(key);
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes on Escape and returns focus to the button", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+    screen.getByRole("link", { name: "Insights" }).focus();
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(menu);
+  });
+
+  it("closes on a click outside the header", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+
+    await userEvent.click(screen.getByRole("button", { name: "Outside" }));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes after a link is chosen", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+
+    await userEvent.click(screen.getByRole("link", { name: "Transactions" }));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("stays open when the panel itself is clicked, not a link", async () => {
+    const menu = renderMenu();
+    await userEvent.click(menu);
+
+    await userEvent.click(screen.getByRole("navigation"));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
   });
 });

@@ -27,7 +27,7 @@ Without one source of values, every new page copies and changes these numbers an
 ## Behaviour
 
 - **Dependencies:** `sass` is a dev dependency of `frontend`. `@fontsource/inter` is a dependency. `vite.config.ts` does not change, because Vite compiles `.scss` when `sass` is installed
-- **Location:** `frontend/src/styles/` with `_tokens.scss`, `_mixins.scss` and `main.scss`
+- **Location:** `frontend/src/styles/` with `_tokens.scss`, `_breakpoints.scss`, `_mixins.scss` and `main.scss`
 - **Runtime tokens:** `_tokens.scss` defines CSS custom properties on `:root`. Components read them with `var(--name)`. Sass variables are used only where a CSS variable cannot be, which is breakpoints in media queries
 - **One definition:** every value is written once, in `_tokens.scss`. Other files in `src/styles/` use `var(--name)` and never repeat a hex value
 - **Colors:**
@@ -54,7 +54,7 @@ Without one source of values, every new page copies and changes these numbers an
 - **Radii:** `--radius-sm` 9px (inputs, buttons), `--radius-md` 12px, `--radius-lg` 16px (cards), `--radius-pill` 99px
 - **Shadows:** `--shadow-card` `0 12px 32px #17251d1f`, `--shadow-popover` `0 25px 65px #17251d22`, `--shadow-button` `0 7px 16px #24483b2b`
 - **Spacing:** a 4px-based scale, `--space-1` (4px) to `--space-8` (32px)
-- **Breakpoints:** Sass variables `$bp-sm` (430px) and `$bp-md` (700px), and a `breakpoint-down($bp)` mixin in `_mixins.scss`
+- **Breakpoints:** Sass variables `$bp-sm` (430px) and `$bp-md` (700px) in `_breakpoints.scss`, kept apart from `_tokens.scss` so a component can use them without copying the `:root` block into its own CSS. A `breakpoint-down($bp)` mixin is in `_mixins.scss`
 - **Base styles:** `main.scss` holds a minimal reset and the `body`, heading and link styles. `body` uses `--font-sans`, `--ink` and `--bg`
 - **Templates:** `signin.html` and `signup.html` change `--muted` from `#5d6a63` to `#75817b`. Nothing else in the templates changes
 
@@ -62,6 +62,7 @@ Without one source of values, every new page copies and changes these numbers an
 
 - `frontend/package.json` and `pnpm-lock.yaml`: add `sass` (dev) and `@fontsource/inter`
 - `frontend/src/styles/_tokens.scss` (new): the tokens above
+- `frontend/src/styles/_breakpoints.scss` (new): `$bp-sm` and `$bp-md`
 - `frontend/src/styles/_mixins.scss` (new): `breakpoint-down` and a `focus-ring` mixin that uses `--focus-ring`
 - `frontend/src/styles/main.scss` (new): `@use` of the two partials, the Inter imports, reset and base styles
 - `frontend/src/main.tsx`: imports `./styles/main.scss` instead of `./index.css`
