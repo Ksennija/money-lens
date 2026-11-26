@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { logoutUser, type CurrentUser } from "../../api/session";
 import styles from "./NavBar.module.scss";
 
@@ -9,6 +9,13 @@ const PRIVATE_LINKS = [
   { to: "/overview", label: "Overview" },
   { to: "/transactions", label: "Transactions" },
   { to: "/insights", label: "Insights" },
+];
+
+// Section anchors of the landing page, shown to signed-out visitors on "/".
+const LANDING_LINKS = [
+  { href: "#features", label: "Features" },
+  { href: "#how", label: "How it works" },
+  { href: "#about", label: "About" },
 ];
 
 function cx(...names: Array<string | false | undefined>) {
@@ -24,6 +31,8 @@ export default function NavBar({ user, onLoggedOut }: NavBarProps) {
   const barRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
+  const { pathname } = useLocation();
+  const isLanding = !user && pathname === "/";
 
   // Mobile menu: close on Escape (focus returns to the button) and on a
   // click outside the header.
@@ -125,24 +134,35 @@ export default function NavBar({ user, onLoggedOut }: NavBarProps) {
               </div>
             </>
           ) : (
-            <div className={styles.actions}>
-              <NavLink
-                to="/signin"
-                className={({ isActive }) =>
-                  cx(styles.action, isActive && styles.active)
-                }
-              >
-                Sign in
-              </NavLink>
-              <NavLink
-                to="/signup"
-                className={({ isActive }) =>
-                  cx(styles.action, styles.primary, isActive && styles.active)
-                }
-              >
-                Sign up
-              </NavLink>
-            </div>
+            <>
+              {isLanding && (
+                <div className={styles.links}>
+                  {LANDING_LINKS.map(({ href, label }) => (
+                    <a key={href} href={href} className={styles.link}>
+                      {label}
+                    </a>
+                  ))}
+                </div>
+              )}
+              <div className={styles.actions}>
+                <NavLink
+                  to="/signin"
+                  className={({ isActive }) =>
+                    cx(styles.action, isActive && styles.active)
+                  }
+                >
+                  Sign in
+                </NavLink>
+                <NavLink
+                  to="/signup"
+                  className={({ isActive }) =>
+                    cx(styles.action, styles.primary, isActive && styles.active)
+                  }
+                >
+                  Sign up
+                </NavLink>
+              </div>
+            </>
           )}
         </nav>
       </div>
