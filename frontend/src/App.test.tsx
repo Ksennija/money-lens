@@ -51,7 +51,7 @@ describe("App", () => {
     jest.restoreAllMocks();
   });
 
-  it("shows Home at / and the Error page at an unknown URL when signed out", async () => {
+  it("shows the landing page at / and the Error page at an unknown URL when signed out", async () => {
     mockApi({ "GET /api/me": [NOT_LOGGED_IN, NOT_LOGGED_IN] });
 
     const { unmount } = render(
@@ -59,7 +59,12 @@ describe("App", () => {
         <App />
       </MemoryRouter>
     );
-    expect(await screen.findByRole("heading", { name: "Home" })).not.toBeNull();
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Understand your money. Make smarter decisions.",
+      })
+    ).not.toBeNull();
     unmount();
 
     render(
