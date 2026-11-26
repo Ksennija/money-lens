@@ -103,6 +103,13 @@ describe("RegistrationPage", () => {
     expect((screen.getByRole("button", { name: /sign up/i }) as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it("shows the SpendWise logo above the card as a link to the home page", () => {
+    renderPage();
+
+    const link = screen.getByRole("link", { name: "SpendWise" });
+    expect(link.getAttribute("href")).toBe("/");
+  });
+
   it("links to the sign in page", () => {
     renderPage();
 

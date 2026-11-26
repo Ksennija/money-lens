@@ -27,6 +27,12 @@ export default function RegistrationPage({ onRegistered }: RegistrationPageProps
 
   return (
     <main className={styles.page}>
+      <Link to="/" className={styles.brand}>
+        <span className={styles.logo} aria-hidden="true">
+          S
+        </span>
+        SpendWise
+      </Link>
       <form className={styles.card} onSubmit={handleSubmit}>
         <Link
           to="/"

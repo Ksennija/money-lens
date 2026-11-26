@@ -113,6 +113,32 @@ describe("App", () => {
     expect(screen.queryByRole("button", { name: /sign out/i })).toBeNull();
   });
 
+  it.each(["/signin", "/signup"])(
+    "shows no navbar at %s, but shows it at / when signed out",
+    async (path) => {
+      mockApi({ "GET /api/me": [NOT_LOGGED_IN, NOT_LOGGED_IN] });
+
+      const { unmount } = render(
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      );
+      expect(
+        await screen.findByRole("link", { name: "SpendWise" })
+      ).not.toBeNull();
+      expect(screen.queryByRole("navigation", { name: "Main" })).toBeNull();
+      unmount();
+
+      render(
+        <MemoryRouter initialEntries={["/"]}>
+          <App />
+        </MemoryRouter>
+      );
+      await screen.findByRole("heading", { level: 1 });
+      expect(screen.getByRole("navigation", { name: "Main" })).not.toBeNull();
+    }
+  );
+
   it("shows the authenticated area when a session already exists, e.g. after a reload", async () => {
     mockApi({
       "GET /api/me": [LOGGED_IN_ME],
