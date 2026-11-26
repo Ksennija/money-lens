@@ -1,6 +1,7 @@
 import { jest } from "@jest/globals";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import RegistrationPage from "./RegistrationPage";
 
 function mockFetchResponse(status: number, body: unknown) {
@@ -11,6 +12,14 @@ function mockFetchResponse(status: number, body: unknown) {
   }));
   globalThis.fetch = fetchMock as unknown as typeof fetch;
   return fetchMock;
+}
+
+function renderPage() {
+  render(
+    <MemoryRouter>
+      <RegistrationPage />
+    </MemoryRouter>
+  );
 }
 
 async function fillAndSubmit(email: string, password: string) {
@@ -30,7 +39,7 @@ describe("RegistrationPage", () => {
       message: "The registration is succeeded",
     });
 
-    render(<RegistrationPage />);
+    renderPage();
     await fillAndSubmit("newuser@example.com", "ValidPass123");
 
     const status = await screen.findByRole("status");
@@ -45,7 +54,7 @@ describe("RegistrationPage", () => {
   it("shows the error as an alert when the email is already registered", async () => {
     mockFetchResponse(409, { code: "email-taken", message: "Email already registered" });
 
-    render(<RegistrationPage />);
+    renderPage();
     await fillAndSubmit("taken@example.com", "ValidPass123");
 
     const alert = await screen.findByRole("alert");
@@ -58,7 +67,7 @@ describe("RegistrationPage", () => {
       throw new TypeError("Failed to fetch");
     }) as unknown as typeof fetch;
 
-    render(<RegistrationPage />);
+    renderPage();
     await fillAndSubmit("newuser@example.com", "ValidPass123");
 
     const alert = await screen.findByRole("alert");
@@ -67,7 +76,7 @@ describe("RegistrationPage", () => {
 
   it("disables the button and clears the previous message while the request is in flight", async () => {
     mockFetchResponse(409, { code: "email-taken", message: "Email already registered" });
-    render(<RegistrationPage />);
+    renderPage();
     await fillAndSubmit("taken@example.com", "ValidPass123");
     await screen.findByRole("alert");
 
@@ -92,5 +101,34 @@ describe("RegistrationPage", () => {
     });
     expect((await screen.findByRole("status")).textContent).toBe("The registration is succeeded");
     expect((screen.getByRole("button", { name: /sign up/i }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("shows the SpendWise logo above the card as a link to the home page", () => {
+    renderPage();
+
+    const link = screen.getByRole("link", { name: "SpendWise" });
+    expect(link.getAttribute("href")).toBe("/");
+  });
+
+  it("links to the sign in page", () => {
+    renderPage();
+
+    const link = screen.getByRole("link", { name: "Sign in" });
+    expect(link.getAttribute("href")).toBe("/signin");
+  });
+
+  it("has a Close link to the home page", () => {
+    renderPage();
+
+    const link = screen.getByRole("link", { name: "Close and go back to the home page" });
+    expect(link.getAttribute("href")).toBe("/");
+  });
+
+  it("sets autocomplete on the fields and keeps the page heading", () => {
+    renderPage();
+
+    expect(screen.getByLabelText(/email/i).getAttribute("autocomplete")).toBe("email");
+    expect(screen.getByLabelText(/password/i).getAttribute("autocomplete")).toBe("new-password");
+    expect(screen.getByRole("heading", { level: 1, name: "Sign up" })).not.toBeNull();
   });
 });

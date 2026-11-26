@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import NavBar from "./components/NavBar/NavBar";
 import InsightsPage from "./pages/InsightsPage";
 import LandingPage from "./pages/LandingPage";
@@ -22,6 +28,7 @@ function toSessionState(user: CurrentUser | null): SessionState {
 function App() {
   const [session, setSession] = useState<SessionState>({ status: "loading" });
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     let cancelled = false;
@@ -64,9 +71,12 @@ function App() {
     );
   }
 
+  // The sign in and sign up pages are standalone cards with their own logo.
+  const isAuthPage = pathname === "/signin" || pathname === "/signup";
+
   return (
     <>
-      <NavBar user={null} />
+      {!isAuthPage && <NavBar user={null} />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route
