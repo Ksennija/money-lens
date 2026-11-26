@@ -214,3 +214,62 @@ describe("NavBar mobile menu", () => {
     expect(menu.getAttribute("aria-expanded")).toBe("true");
   });
 });
+
+describe("NavBar landing links", () => {
+  const LANDING = [
+    ["Features", "#features"],
+    ["How it works", "#how"],
+    ["About", "#about"],
+  ];
+
+  function renderLanding(path: string, user: { email: string } | null = null) {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <NavBar user={user} />
+      </MemoryRouter>,
+    );
+  }
+
+  it.each(LANDING)("shows %s linking to %s on / when signed out", (name, href) => {
+    renderLanding("/");
+
+    expect(screen.getByRole("link", { name }).getAttribute("href")).toBe(href);
+  });
+
+  it("keeps Sign in and Sign up next to the landing links", () => {
+    renderLanding("/");
+
+    expect(screen.getByRole("link", { name: "Sign in" })).not.toBeNull();
+    expect(screen.getByRole("link", { name: "Sign up" })).not.toBeNull();
+  });
+
+  it.each(["/signin", "/signup", "/unknown"])(
+    "does not show the landing links on %s",
+    (path) => {
+      renderLanding(path);
+
+      for (const [name] of LANDING) {
+        expect(screen.queryByRole("link", { name })).toBeNull();
+      }
+    },
+  );
+
+  it("does not show the landing links to a signed-in user on /", () => {
+    renderLanding("/", { email: "user@example.com" });
+
+    for (const [name] of LANDING) {
+      expect(screen.queryByRole("link", { name })).toBeNull();
+    }
+  });
+
+  it("closes the mobile menu after a landing link is chosen", async () => {
+    renderLanding("/");
+    const menu = screen.getByRole("button", { name: "Toggle navigation" });
+    await userEvent.click(menu);
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+
+    await userEvent.click(screen.getByRole("link", { name: "About" }));
+
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+  });
+});
