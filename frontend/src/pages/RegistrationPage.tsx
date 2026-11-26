@@ -1,5 +1,7 @@
 import { useState, type SubmitEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { registerUser, type RegisterResult } from '../api/register';
+import styles from './RegistrationPage.module.scss';
 
 type RegistrationPageProps = { onRegistered?: () => void };
 
@@ -24,25 +26,64 @@ export default function RegistrationPage({ onRegistered }: RegistrationPageProps
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Sign up</h1>
-      <label>
-        Email
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      </label>
-      <label>
-        Password
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      </label>
-      <button type="submit" disabled={pending}>
-        Sign up
-      </button>
-      {result?.ok && <p role="status">{result.message}</p>}
-      {result && !result.ok && (
-        <p role="alert" style={{ color: 'crimson' }}>
-          {result.message}
+    <main className={styles.page}>
+      <form className={styles.card} onSubmit={handleSubmit}>
+        <Link
+          to="/"
+          className={styles.close}
+          aria-label="Close and go back to the home page"
+        >
+          ×
+        </Link>
+        <h1 className={styles.title}>Sign up</h1>
+        <p className={styles.subtitle}>
+          Create your account to start understanding your money.
         </p>
-      )}
-    </form>
+        <div className={styles.field}>
+          <label htmlFor="email" className={styles.label}>
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            className={styles.input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="password" className={styles.label}>
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            className={styles.input}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <button type="submit" className={styles.button} disabled={pending}>
+          Sign up
+        </button>
+        {result?.ok && (
+          <p role="status" className={styles.success}>
+            {result.message}
+          </p>
+        )}
+        {result && !result.ok && (
+          <p role="alert" className={styles.error}>
+            {result.message}
+          </p>
+        )}
+        <p className={styles.switch}>
+          Already have an account? <Link to="/signin">Sign in</Link>
+        </p>
+      </form>
+    </main>
   );
 }
