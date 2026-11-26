@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import NavBar from "./components/NavBar/NavBar";
 import InsightsPage from "./pages/InsightsPage";
+import LandingPage from "./pages/LandingPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
@@ -48,7 +49,7 @@ function App() {
           onLoggedOut={() => setSession({ status: "logged-out" })}
         />
         <Routes>
-          <Route path="/" element={<PlaceholderPage title="Home" />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/signin" element={<Navigate to="/overview" replace />} />
           <Route path="/signup" element={<Navigate to="/overview" replace />} />
           <Route
@@ -67,7 +68,7 @@ function App() {
     <>
       <NavBar user={null} />
       <Routes>
-        <Route path="/" element={<PlaceholderPage title="Home" />} />
+        <Route path="/" element={<LandingPage />} />
         <Route
           path="/signin"
           element={<LoginPage onLoggedIn={loadSession} />}

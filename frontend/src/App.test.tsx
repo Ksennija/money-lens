@@ -51,7 +51,7 @@ describe("App", () => {
     jest.restoreAllMocks();
   });
 
-  it("shows Home at / and the Error page at an unknown URL when signed out", async () => {
+  it("shows the landing page at / and the Error page at an unknown URL when signed out", async () => {
     mockApi({ "GET /api/me": [NOT_LOGGED_IN, NOT_LOGGED_IN] });
 
     const { unmount } = render(
@@ -59,7 +59,12 @@ describe("App", () => {
         <App />
       </MemoryRouter>
     );
-    expect(await screen.findByRole("heading", { name: "Home" })).not.toBeNull();
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Understand your money. Make smarter decisions.",
+      })
+    ).not.toBeNull();
     unmount();
 
     render(
@@ -70,6 +75,27 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { name: "Error page" })
     ).not.toBeNull();
+  });
+
+  it("shows the landing page at / to a signed-in user, under the app navbar", async () => {
+    mockApi({ "GET /api/me": [LOGGED_IN_ME] });
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Understand your money. Make smarter decisions.",
+      })
+    ).not.toBeNull();
+    const nav = screen.getByRole("navigation", { name: "Main" });
+    expect(within(nav).getByRole("link", { name: "Overview" })).not.toBeNull();
+    expect(within(nav).getByRole("button", { name: "Sign out" })).not.toBeNull();
+    expect(within(nav).queryByRole("link", { name: "About" })).toBeNull();
   });
 
   it("shows the login page when there is no active session", async () => {
