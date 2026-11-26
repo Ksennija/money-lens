@@ -14,7 +14,7 @@ function renderAt(path: string) {
 
 describe("NavBar", () => {
   it("shows only Sign up and Sign in links", () => {
-    renderAt("/");
+    renderAt("/signin");
 
     const nav = screen.getByRole("navigation");
     expect(nav.querySelectorAll("a")).toHaveLength(2);
