@@ -18,6 +18,26 @@
   --red-border: #e3a8a2;
   --focus-ring: #24483b55;
 
+  // Landing page colors
+  --muted-strong: #5d6a63; // secondary text, AA on white, --bg and --soft
+  --green-mid: #3d6b59;
+  --green-light: #6f9a86;
+  --green-border: #d5e6dc;
+  --green-border-strong: #b9d3c4;
+  --on-green: #d8eadf; // text on green backgrounds
+  --track: #edf0ed;
+  --surface-glass: #ffffffb8;
+  --surface-glass-strong: #ffffffd9;
+  --hero-start: #f3f8f5;
+  --hero-end: #f7faf8;
+  --gradient-hero: linear-gradient(
+    130deg,
+    var(--hero-start),
+    var(--soft) 60%,
+    var(--hero-end)
+  );
+  --gradient-green: linear-gradient(120deg, var(--green), var(--green-mid));
+
   // Font
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --line-height-base: 1.5;
@@ -27,6 +47,7 @@
   --weight-extrabold: 800;
 
   // Type scale
+  --text-2xs: 12px; // smallest allowed text
   --text-xs: 13px;
   --text-sm: 14px;
   --text-base: 15px;
@@ -40,6 +61,7 @@
   --radius-sm: 9px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 21px;
   --radius-pill: 99px;
 
   // Shadows
