@@ -11,7 +11,7 @@ import {
   type MonthResult,
 } from "../hooks/useMonthNavigation";
 import { useRecentTransactions } from "../hooks/useRecentTransactions";
-import { formatMonth, formatMonthName } from "../lib/months";
+import { formatMonthName } from "../lib/months";
 import styles from "./OverviewPage.module.scss";
 
 const RATES_UNAVAILABLE_MESSAGE =
@@ -139,15 +139,11 @@ export default function OverviewPage() {
           {shown && (
             <MonthNav
               month={shown.month}
-              previousMonth={shown.previousMonth}
               latestMonth={latestMonth}
               busy={busy}
               onSelect={load}
-            >
-              <h2 className={styles.month}>
-                {formatMonth(shown.month)} · {shown.currency}
-              </h2>
-            </MonthNav>
+              suffix={`· ${shown.currency}`}
+            />
           )}
           <button
             ref={importButton}

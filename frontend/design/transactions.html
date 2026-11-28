@@ -18,7 +18,11 @@
   h1 { margin:0 0 5px; font-size:30px; letter-spacing:-.8px; }
   .sub { color:var(--muted); margin:0; }
   .who { margin-bottom:4px; font-size:13px; }
-  .month { border:1px solid var(--line); background:white; padding:10px 14px; border-radius:10px; color:#45534c; }
+  .month-nav { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .nav-btn { border:1px solid var(--line); background:white; color:var(--ink); border-radius:9px; padding:9px 13px; cursor:pointer; }
+  .nav-btn:hover:not(:disabled) { border-color:var(--green); color:var(--green); }
+  .nav-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .pill { background:var(--green-soft); color:var(--green); padding:5px 10px; border-radius:20px; font-size:12px; font-weight:700; }
   .content { background:white; border:1px solid var(--line); border-radius:18px; overflow:hidden; }
   .content-head { padding:22px 22px 16px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
   h2 { font-size:18px; margin:0; }
@@ -68,7 +72,7 @@
 <div class="app">
   <section class="heading">
     <div><p class="sub who">Logged in as user@example.com</p><h1>Transactions</h1><p class="sub">Manage and track your money</p></div>
-    <div class="month">November 2026&nbsp; ▾</div>
+    <div class="month-nav" role="group" aria-label="Month"><button class="nav-btn" type="button">Previous month</button><span class="pill">November 2026</span><button class="nav-btn" type="button" disabled>Next month</button></div>
   </section>
 
   <main class="content">
