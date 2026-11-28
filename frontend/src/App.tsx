@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Navigate,
   Route,
@@ -7,8 +7,10 @@ import {
   useNavigate,
 } from "react-router-dom";
 import NavBar from "./components/NavBar/NavBar";
+import ImportPage from "./pages/ImportPage";
 import InsightsPage from "./pages/InsightsPage";
 import LandingPage from "./pages/LandingPage";
+import OverviewPage from "./pages/OverviewPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
@@ -49,6 +51,11 @@ function App() {
   }
 
   if (session.status === "logged-in") {
+    const user = session.user;
+    // Every signed-in page shares one layout: the main landmark and "Logged in as …".
+    const signedIn = (page: ReactNode) => (
+      <AuthenticatedPage user={user}>{page}</AuthenticatedPage>
+    );
     return (
       <>
         <NavBar
@@ -61,10 +68,15 @@ function App() {
           <Route path="/signup" element={<Navigate to="/overview" replace />} />
           <Route
             path="/overview"
-            element={<AuthenticatedPage user={session.user} />}
+            element={signedIn(
+              <>
+                <OverviewPage />
+                <ImportPage />
+              </>
+            )}
           />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/transactions" element={signedIn(<TransactionsPage />)} />
+          <Route path="/insights" element={signedIn(<InsightsPage />)} />
           <Route path="*" element={<PlaceholderPage title="Error page" />} />
         </Routes>
       </>

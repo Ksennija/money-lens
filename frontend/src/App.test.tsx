@@ -376,4 +376,52 @@ describe("App", () => {
     expect(screen.getByRole("cell", { name: "30.09.2026" })).not.toBeNull();
     expect(screen.getByRole("cell", { name: "-€4.90" })).not.toBeNull();
   });
+
+  it.each([
+    ["/overview", "Overview", { "GET /api/comparison": [COMPARISON] }],
+    [
+      "/transactions",
+      "Transactions",
+      {
+        "GET /api/transactions": [
+          { status: 200, body: { code: "transactions", month: "2026-09", transactions: [] } },
+        ],
+      },
+    ],
+    [
+      "/insights",
+      "Insights",
+      {
+        "GET /api/category-changes": [
+          {
+            status: 200,
+            body: {
+              code: "category-changes",
+              month: "2026-09",
+              currency: "EUR",
+              hasTransactions: false,
+              changes: [],
+            },
+          },
+        ],
+      },
+    ],
+  ])(
+    "shows who is signed in above the heading on %s, with one main and one h1",
+    async (path, title, routes) => {
+      mockApi({ "GET /api/me": [LOGGED_IN_ME], ...routes });
+
+      render(
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      );
+
+      const heading = await screen.findByRole("heading", { level: 1, name: title });
+      const user = screen.getByText("Logged in as user@example.com");
+      expect(user.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getAllByRole("main")).toHaveLength(1);
+      expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    }
+  );
 });

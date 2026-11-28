@@ -1,16 +1,19 @@
-import type { CurrentUser } from '../api/session';
-import ImportPage from './ImportPage';
-import OverviewPage from './OverviewPage';
+import type { ReactNode } from "react";
+import type { CurrentUser } from "../api/session";
+import styles from "./AuthenticatedPage.module.scss";
 
-type AuthenticatedPageProps = { user: CurrentUser };
+type AuthenticatedPageProps = { user: CurrentUser; children: ReactNode };
 
-export default function AuthenticatedPage({ user }: AuthenticatedPageProps) {
+// The layout of every signed-in page: the one main landmark and who is signed in.
+// Each page brings its own h1.
+export default function AuthenticatedPage({
+  user,
+  children,
+}: AuthenticatedPageProps) {
   return (
-    <main>
-      <h1>SpendWise</h1>
-      <p>Logged in as {user.email}</p>
-      <OverviewPage />
-      <ImportPage />
+    <main className={styles.page}>
+      <p className={styles.user}>Logged in as {user.email}</p>
+      {children}
     </main>
   );
 }

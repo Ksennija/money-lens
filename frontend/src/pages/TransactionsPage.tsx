@@ -65,7 +65,7 @@ export default function TransactionsPage() {
     view.status === "ready" && view.data.transactions.length > 0;
 
   return (
-    <main>
+    <div>
       <h1>Transactions</h1>
 
       {noTransactions && (
@@ -139,6 +139,6 @@ export default function TransactionsPage() {
           </tbody>
         </table>
       )}
-    </main>
+    </div>
   );
 }

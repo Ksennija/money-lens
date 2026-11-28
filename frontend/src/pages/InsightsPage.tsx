@@ -43,7 +43,7 @@ export default function InsightsPage() {
   }
 
   return (
-    <main>
+    <div>
       <h1>Insights</h1>
 
       {view.status === "loading" && <p role="status">Loading…</p>}
@@ -79,6 +79,6 @@ export default function InsightsPage() {
             currency={view.data.currency}
           />
         )}
-    </main>
+    </div>
   );
 }

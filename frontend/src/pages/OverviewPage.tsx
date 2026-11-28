@@ -58,7 +58,7 @@ export default function OverviewPage() {
 
   return (
     <section>
-      <h2>Overview</h2>
+      <h1>Overview</h1>
 
       {noTransactions && (
         <p>
@@ -88,9 +88,9 @@ export default function OverviewPage() {
             busy={busy}
             onSelect={load}
           />
-          <h3>
+          <h2>
             {formatMonth(shown.month)} · {shown.currency}
-          </h3>
+          </h2>
           {shown.ratesApproximate && <RatesNotice />}
         </>
       )}
