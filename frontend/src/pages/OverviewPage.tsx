@@ -6,9 +6,14 @@ import {
   type MonthResult,
 } from "../hooks/useMonthNavigation";
 import { formatMonth, formatMonthName } from "../lib/months";
+import styles from "./OverviewPage.module.scss";
 
 const RATES_UNAVAILABLE_MESSAGE =
   "Exchange rates are currently unavailable. Try again in a moment.";
+
+function cx(...names: Array<string | false | undefined>) {
+  return names.filter(Boolean).join(" ");
+}
 
 // Formatting only: the amounts and changes themselves are calculated by the server.
 function formatMoney(cents: number, currency: string): string {
@@ -32,11 +37,65 @@ function formatChange(changeCents: number, comparison: Comparison): string {
   )} vs ${previousName}`;
 }
 
+// The percent comes from the server, rounded to one decimal. It is null when the previous month
+// had no spending to compare with.
+function formatSpendingPercent(comparison: Comparison): string {
+  const percent = comparison.change.spendingPercent;
+  const previousName = formatMonthName(comparison.previousMonth);
+  if (percent === null) {
+    return isEmpty(comparison.previous)
+      ? `no transactions in ${previousName}`
+      : `no spending in ${previousName}`;
+  }
+  if (percent === 0) return "no change compared with last month";
+  const arrow = percent > 0 ? "↑" : "↓";
+  return `${arrow} ${Math.abs(percent).toFixed(1)}% compared with last month`;
+}
+
+// Green for good news, red for bad news. Nothing when the value did not move or there is no
+// previous month to compare with. The arrow and the words carry the meaning too.
+function changeTone(
+  change: number, // only the sign matters: cents or percent
+  comparison: Comparison,
+  higherIsBetter: boolean
+): string | undefined {
+  if (change === 0 || isEmpty(comparison.previous)) return undefined;
+  return change > 0 === higherIsBetter ? styles.good : styles.bad;
+}
+
 async function fetchComparison(
   month: string | undefined
 ): Promise<MonthResult<Comparison>> {
   const result = await getComparison(month);
   return result.ok ? { ok: true, data: result.comparison } : result;
+}
+
+type StatCardProps = {
+  id: string;
+  label: string;
+  value: string;
+  valueClass?: string;
+  change: string;
+  changeClass?: string;
+};
+
+function StatCard({
+  id,
+  label,
+  value,
+  valueClass,
+  change,
+  changeClass,
+}: StatCardProps) {
+  return (
+    <article className={styles.card} aria-labelledby={id}>
+      <p id={id} className={styles.label}>
+        {label}
+      </p>
+      <p className={cx(styles.value, valueClass)}>{value}</p>
+      <p className={cx(styles.change, changeClass)}>{change}</p>
+    </article>
+  );
 }
 
 export default function OverviewPage() {
@@ -58,83 +117,142 @@ export default function OverviewPage() {
 
   return (
     <section>
-      <h1>Overview</h1>
-
-      {noTransactions && (
-        <p>
-          No transactions yet. Import a CSV file below to see your overview.
-        </p>
-      )}
-
-      {view.status === "error" && (
-        <>
-          <p role="alert" style={{ color: "crimson" }}>
-            {view.code === "rates-unavailable"
-              ? RATES_UNAVAILABLE_MESSAGE
-              : view.message}
-          </p>
-          <button type="button" onClick={() => load(requested)}>
-            Retry
-          </button>
-        </>
-      )}
-
-      {shown && (
-        <>
+      <header className={styles.heading}>
+        <div>
+          <h1 className={styles.title}>Overview</h1>
+          <p className={styles.subtitle}>A clear picture of your money</p>
+        </div>
+        {shown && (
           <MonthNav
             month={shown.month}
             previousMonth={shown.previousMonth}
             latestMonth={latestMonth}
             busy={busy}
             onSelect={load}
-          />
-          <h2>
-            {formatMonth(shown.month)} · {shown.currency}
-          </h2>
-          {shown.ratesApproximate && <RatesNotice />}
+          >
+            <h2 className={styles.month}>
+              {formatMonth(shown.month)} · {shown.currency}
+            </h2>
+          </MonthNav>
+        )}
+      </header>
+
+      {noTransactions && (
+        <p className={styles.message}>
+          No transactions yet. Import a CSV file below to see your overview.
+        </p>
+      )}
+
+      {view.status === "error" && (
+        <>
+          <p role="alert" className={cx(styles.message, styles.error)}>
+            {view.code === "rates-unavailable"
+              ? RATES_UNAVAILABLE_MESSAGE
+              : view.message}
+          </p>
+          <button
+            type="button"
+            className={styles.retry}
+            onClick={() => load(requested)}
+          >
+            Retry
+          </button>
         </>
       )}
 
-      {view.status === "loading" && <p role="status">Loading…</p>}
+      {shown?.ratesApproximate && <RatesNotice />}
+
+      {view.status === "loading" && (
+        <p role="status" className={styles.message}>
+          Loading…
+        </p>
+      )}
 
       {view.status === "ready" && !noTransactions && (
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">
-                <span hidden>Measure</span>
-              </th>
-              <th scope="col">{formatMonthName(view.data.month)}</th>
-              <th scope="col">Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Income</th>
-              <td>
-                {formatMoney(view.data.current.incomeCents, view.data.currency)}
-              </td>
-              <td>{formatChange(view.data.change.incomeCents, view.data)}</td>
-            </tr>
-            <tr>
-              <th scope="row">Spent</th>
-              <td>
-                {formatMoney(
-                  view.data.current.spendingCents,
-                  view.data.currency
-                )}
-              </td>
-              <td>{formatChange(view.data.change.spendingCents, view.data)}</td>
-            </tr>
-            <tr>
-              <th scope="row">Saved</th>
-              <td>
-                {formatMoney(view.data.current.netCents, view.data.currency)}
-              </td>
-              <td>{formatChange(view.data.change.netCents, view.data)}</td>
-            </tr>
-          </tbody>
-        </table>
+        <>
+          <div className={styles.grid}>
+            <StatCard
+              id="overview-income"
+              label="Total income"
+              value={formatMoney(
+                view.data.current.incomeCents,
+                view.data.currency
+              )}
+              valueClass={styles.positive}
+              change={formatChange(view.data.change.incomeCents, view.data)}
+              changeClass={changeTone(
+                view.data.change.incomeCents,
+                view.data,
+                true
+              )}
+            />
+            <StatCard
+              id="overview-spent"
+              label="Total expenses"
+              value={formatMoney(
+                view.data.current.spendingCents,
+                view.data.currency
+              )}
+              change={formatChange(view.data.change.spendingCents, view.data)}
+              changeClass={changeTone(
+                view.data.change.spendingCents,
+                view.data,
+                false
+              )}
+            />
+            <StatCard
+              id="overview-saved"
+              label="You saved"
+              value={formatMoney(
+                view.data.current.netCents,
+                view.data.currency
+              )}
+              valueClass={
+                view.data.current.netCents < 0
+                  ? styles.negative
+                  : styles.positive
+              }
+              change={formatChange(view.data.change.netCents, view.data)}
+              changeClass={changeTone(
+                view.data.change.netCents,
+                view.data,
+                true
+              )}
+            />
+          </div>
+
+          <article
+            className={cx(styles.card, styles.wide)}
+            aria-labelledby="overview-spending"
+          >
+            <div className={styles.between}>
+              <h2 id="overview-spending" className={styles.cardTitle}>
+                Spending this month
+              </h2>
+              <span className={styles.change}>
+                vs. {formatMonthName(view.data.previousMonth)}
+              </span>
+            </div>
+            <p className={styles.value}>
+              {formatMoney(
+                view.data.current.spendingCents,
+                view.data.currency
+              )}
+            </p>
+            <p
+              className={cx(
+                styles.change,
+                changeTone(
+                  view.data.change.spendingPercent ?? 0,
+                  view.data,
+                  false
+                )
+              )}
+            >
+              {formatSpendingPercent(view.data)}
+            </p>
+          </article>
+        </>
       )}
     </section>
   );

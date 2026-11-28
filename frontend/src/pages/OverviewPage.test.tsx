@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OverviewPage from "./OverviewPage";
 
@@ -20,7 +20,14 @@ function totals(incomeCents: number, spendingCents: number): Totals {
   return { incomeCents, spendingCents, netCents: incomeCents - spendingCents };
 }
 
-function comparison(month: string, previousMonth: string, current: Totals, previous: Totals, currency = "EUR") {
+function comparison(
+  month: string,
+  previousMonth: string,
+  current: Totals,
+  previous: Totals,
+  currency = "EUR",
+  spendingPercent: number | null = null
+) {
   return {
     status: 200,
     body: {
@@ -34,7 +41,7 @@ function comparison(month: string, previousMonth: string, current: Totals, previ
         spendingCents: current.spendingCents - previous.spendingCents,
         incomeCents: current.incomeCents - previous.incomeCents,
         netCents: current.netCents - previous.netCents,
-        spendingPercent: null,
+        spendingPercent,
         incomePercent: null,
       },
     },
@@ -50,16 +57,21 @@ const RATES_UNAVAILABLE = {
   body: { code: "rates-unavailable", message: "Exchange rates are currently unavailable" },
 };
 
-function row(name: string): HTMLElement {
-  return within(screen.getByRole("table")).getByRole("row", { name: new RegExp(`^${name}`, "i") });
+// The three cards and the spending card are articles named by their label.
+function card(name: string): HTMLElement {
+  return screen.getByRole("article", { name });
 }
+
+const INCOME = "Total income";
+const SPENT = "Total expenses";
+const SAVED = "You saved";
 
 describe("OverviewPage", () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it("shows a loading status, then the latest month with income, spent and saved", async () => {
+  it("shows a loading status, then the latest month with income, expenses and saved", async () => {
     const fetchMock = mockApi({ "/api/comparison": [SEPTEMBER] });
 
     render(<OverviewPage />);
@@ -67,13 +79,13 @@ describe("OverviewPage", () => {
     expect(screen.getByRole("status").textContent).toMatch(/loading/i);
     expect(await screen.findByRole("heading", { name: "September 2026 · EUR" })).not.toBeNull();
     expect(screen.queryByRole("status")).toBeNull();
-    expect(row("Income").textContent).toContain("€3,200.00");
-    expect(row("Spent").textContent).toContain("€2,960.00");
-    expect(row("Saved").textContent).toContain("€240.00");
+    expect(card(INCOME).textContent).toContain("€3,200.00");
+    expect(card(SPENT).textContent).toContain("€2,960.00");
+    expect(card(SAVED).textContent).toContain("€240.00");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("shows a notice above the table when some amounts use an older exchange rate (Criterion 8)", async () => {
+  it("shows a notice above the cards when some amounts use an older exchange rate (Criterion 8)", async () => {
     mockApi({ "/api/comparison": [{ status: 200, body: { ...SEPTEMBER.body, ratesApproximate: true } }] });
 
     render(<OverviewPage />);
@@ -81,18 +93,18 @@ describe("OverviewPage", () => {
     expect((await screen.findByRole("note")).textContent).toBe(
       "Some amounts use an older exchange rate because current rates are unavailable."
     );
-    expect(screen.getByRole("table")).not.toBeNull();
+    expect(card(INCOME)).not.toBeNull();
   });
 
   it("shows the change of every value vs the previous month with direction, amount and month name", async () => {
     mockApi({ "/api/comparison": [SEPTEMBER] });
 
     render(<OverviewPage />);
-    await screen.findByRole("table");
+    await screen.findByRole("article", { name: INCOME });
 
-    expect(row("Income").textContent).toContain("↑ €100.00 vs August");
-    expect(row("Spent").textContent).toContain("↑ €370.00 vs August");
-    expect(row("Saved").textContent).toContain("↓ €270.00 vs August");
+    expect(card(INCOME).textContent).toContain("↑ €100.00 vs August");
+    expect(card(SPENT).textContent).toContain("↑ €370.00 vs August");
+    expect(card(SAVED).textContent).toContain("↓ €270.00 vs August");
   });
 
   it("shows 'no change' when a value did not change", async () => {
@@ -101,9 +113,9 @@ describe("OverviewPage", () => {
     });
 
     render(<OverviewPage />);
-    await screen.findByRole("table");
+    await screen.findByRole("article", { name: INCOME });
 
-    expect(row("Income").textContent).toContain("no change vs August");
+    expect(card(INCOME).textContent).toContain("no change vs August");
   });
 
   it("shows a negative saved amount with a minus sign", async () => {
@@ -112,9 +124,9 @@ describe("OverviewPage", () => {
     });
 
     render(<OverviewPage />);
-    await screen.findByRole("table");
+    await screen.findByRole("article", { name: INCOME });
 
-    expect(row("Saved").textContent).toContain("-€120.00");
+    expect(card(SAVED).textContent).toContain("-€120.00");
   });
 
   it("formats amounts in the currency reported by the server", async () => {
@@ -125,7 +137,7 @@ describe("OverviewPage", () => {
     render(<OverviewPage />);
 
     expect(await screen.findByRole("heading", { name: "September 2026 · USD" })).not.toBeNull();
-    expect(row("Income").textContent).toContain("$10.00");
+    expect(card(INCOME).textContent).toContain("$10.00");
   });
 
   it("says there are no transactions in the previous month instead of showing a change", async () => {
@@ -134,35 +146,79 @@ describe("OverviewPage", () => {
     });
 
     render(<OverviewPage />);
-    await screen.findByRole("table");
+    await screen.findByRole("article", { name: INCOME });
 
-    for (const name of ["Income", "Spent", "Saved"]) {
-      expect(row(name).textContent).toContain("no transactions in August");
-      expect(row(name).textContent).not.toMatch(/[↑↓]/);
+    for (const name of [INCOME, SPENT, SAVED]) {
+      expect(card(name).textContent).toContain("no transactions in August");
+      expect(card(name).textContent).not.toMatch(/[↑↓]/);
     }
   });
 
-  it("shows an empty state pointing to the import, and no table, when the user has no transactions", async () => {
+  it("shows an empty state pointing to the import, and no cards, when the user has no transactions", async () => {
     mockApi({ "/api/comparison": [EMPTY] });
 
     render(<OverviewPage />);
 
     const message = await screen.findByText(/no transactions yet/i);
     expect(message.textContent).toMatch(/import/i);
-    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("article")).toBeNull();
+  });
+
+  describe("spending card", () => {
+    async function showSpending(percent: number | null, previous = totals(310000, 259000)) {
+      mockApi({
+        "/api/comparison": [comparison("2026-09", "2026-08", totals(320000, 296000), previous, "EUR", percent)],
+      });
+      render(<OverviewPage />);
+      await screen.findByRole("article", { name: INCOME });
+      return card("Spending this month");
+    }
+
+    it("shows this month's spending and a rise as an up arrow with one decimal", async () => {
+      const spending = await showSpending(14.3);
+
+      expect(spending.textContent).toContain("€2,960.00");
+      expect(spending.textContent).toContain("vs. August");
+      expect(spending.textContent).toContain("↑ 14.3% compared with last month");
+    });
+
+    it("shows a fall as a down arrow", async () => {
+      const spending = await showSpending(-5);
+
+      expect(spending.textContent).toContain("↓ 5.0% compared with last month");
+    });
+
+    it("says there is no change when the percent is 0", async () => {
+      const spending = await showSpending(0);
+
+      expect(spending.textContent).toContain("no change compared with last month");
+    });
+
+    it("says there was no spending when the previous month only had income", async () => {
+      const spending = await showSpending(null, totals(100000, 0));
+
+      expect(spending.textContent).toContain("no spending in August");
+      expect(spending.textContent).not.toMatch(/[↑↓]/);
+    });
+
+    it("says there were no transactions when the previous month was empty", async () => {
+      const spending = await showSpending(null, totals(0, 0));
+
+      expect(spending.textContent).toContain("no transactions in August");
+    });
   });
 
   describe("month navigation", () => {
-    it("goes to the previous month and shows its table", async () => {
+    it("goes to the previous month and shows its cards", async () => {
       const fetchMock = mockApi({ "/api/comparison": [SEPTEMBER], "/api/comparison?month=2026-08": [AUGUST] });
 
       render(<OverviewPage />);
-      await screen.findByRole("table");
+      await screen.findByRole("article", { name: INCOME });
       await userEvent.click(screen.getByRole("button", { name: /previous month/i }));
 
       expect(await screen.findByRole("heading", { name: "August 2026 · EUR" })).not.toBeNull();
-      expect(row("Saved").textContent).toContain("€510.00");
-      expect(row("Saved").textContent).toContain("vs July");
+      expect(card(SAVED).textContent).toContain("€510.00");
+      expect(card(SAVED).textContent).toContain("vs July");
       expect(fetchMock).toHaveBeenLastCalledWith("/api/comparison?month=2026-08");
     });
 
@@ -170,7 +226,7 @@ describe("OverviewPage", () => {
       mockApi({ "/api/comparison": [SEPTEMBER], "/api/comparison?month=2026-08": [AUGUST] });
 
       render(<OverviewPage />);
-      await screen.findByRole("table");
+      await screen.findByRole("article", { name: INCOME });
       const next = screen.getByRole("button", { name: /next month/i }) as HTMLButtonElement;
       expect(next.disabled).toBe(true);
 
@@ -188,7 +244,7 @@ describe("OverviewPage", () => {
       });
 
       render(<OverviewPage />);
-      await screen.findByRole("table");
+      await screen.findByRole("article", { name: INCOME });
       await userEvent.click(screen.getByRole("button", { name: /previous month/i }));
       await screen.findByRole("heading", { name: "August 2026 · EUR" });
       await userEvent.click(screen.getByRole("button", { name: /next month/i }));
@@ -204,7 +260,7 @@ describe("OverviewPage", () => {
       mockApi({ "/api/comparison": [january], "/api/comparison?month=2026-12": [december] });
 
       render(<OverviewPage />);
-      await screen.findByRole("table");
+      await screen.findByRole("article", { name: INCOME });
       await userEvent.click(screen.getByRole("button", { name: /previous month/i }));
 
       expect(await screen.findByRole("heading", { name: "December 2026 · EUR" })).not.toBeNull();
@@ -215,11 +271,11 @@ describe("OverviewPage", () => {
       mockApi({ "/api/comparison": [AUGUST], "/api/comparison?month=2026-07": [july] });
 
       render(<OverviewPage />);
-      await screen.findByRole("table");
+      await screen.findByRole("article", { name: INCOME });
       await userEvent.click(screen.getByRole("button", { name: /previous month/i }));
 
       expect(await screen.findByRole("heading", { name: "July 2026 · EUR" })).not.toBeNull();
-      expect(row("Income").textContent).toContain("€0.00");
+      expect(card(INCOME).textContent).toContain("€0.00");
       expect(screen.queryByText(/no transactions yet/i)).toBeNull();
     });
   });
@@ -231,11 +287,11 @@ describe("OverviewPage", () => {
       render(<OverviewPage />);
 
       expect((await screen.findByRole("alert")).textContent).toMatch(/exchange rates/i);
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryByRole("article")).toBeNull();
 
       await userEvent.click(screen.getByRole("button", { name: /retry/i }));
 
-      expect(await screen.findByRole("table")).not.toBeNull();
+      expect(await screen.findByRole("article", { name: INCOME })).not.toBeNull();
       expect(screen.queryByRole("alert")).toBeNull();
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
@@ -259,18 +315,18 @@ describe("OverviewPage", () => {
       expect((await screen.findByRole("alert")).textContent).toBe("Something went wrong");
     });
 
-    it("keeps the current month's table when moving to another month fails, and shows the error", async () => {
+    it("shows the error and no cards when moving to another month fails", async () => {
       mockApi({
         "/api/comparison": [SEPTEMBER],
         "/api/comparison?month=2026-08": [RATES_UNAVAILABLE],
       });
 
       render(<OverviewPage />);
-      await screen.findByRole("table");
+      await screen.findByRole("article", { name: INCOME });
       await userEvent.click(screen.getByRole("button", { name: /previous month/i }));
 
       expect((await screen.findByRole("alert")).textContent).toMatch(/exchange rates/i);
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryByRole("article")).toBeNull();
     });
   });
 });

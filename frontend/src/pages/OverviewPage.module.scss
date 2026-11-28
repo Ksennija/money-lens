@@ -1,0 +1,152 @@
+@use "../styles/breakpoints" as bp;
+@use "../styles/mixins" as m;
+
+// Layout and values follow frontend/design/overview.html.
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: var(--space-4);
+  }
+}
+
+.title {
+  margin-bottom: var(--space-1);
+  font-size: var(--text-3xl);
+  letter-spacing: -0.7px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted-strong);
+}
+
+// The name of the month, shown as a pill between the month buttons.
+.month {
+  padding: 5px 10px;
+  background: var(--soft);
+  border-radius: var(--radius-pill);
+  color: var(--green);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+}
+
+.message {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.error {
+  background: var(--red-soft);
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--red-text);
+  font-size: var(--text-xs);
+}
+
+.retry {
+  margin-bottom: var(--space-4);
+  padding: 9px 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @include m.breakpoint-down(bp.$bp-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    padding: 14px;
+  }
+}
+
+.wide {
+  margin-top: 18px;
+}
+
+.label {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
+}
+
+.value {
+  margin: var(--space-2) 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    font-size: var(--text-xl);
+  }
+}
+
+// Amounts that are good news are green and bad news red. The arrow and the words say the same.
+.positive {
+  color: var(--positive);
+}
+
+.negative {
+  color: var(--red);
+}
+
+.change {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
+}
+
+.good {
+  color: var(--positive);
+}
+
+.bad {
+  color: var(--red);
+}
+
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+}
