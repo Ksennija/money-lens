@@ -6,7 +6,7 @@
 <title>SpendWise — Transactions</title>
 <style>
   :root {
-    --ink: #202b27; --muted: #75817b; --line: #e7ebe8; --surface: #ffffff;
+    --ink: #202b27; --muted: #5d6a63; --line: #e7ebe8; --surface: #ffffff;
     --canvas: #f5f7f5; --green: #24483b; --green-soft: #e9f3ed;
     --red: #bd554c; --radius: 16px;
   }
@@ -41,14 +41,13 @@
   .filter-menu legend { margin-bottom:9px; padding:0; color:#5d6a63; font-size:12px; font-weight:700; }
   .filter-menu label { display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer; }
   .filter-menu input { accent-color:var(--green); }
-  .filter-menu .actions { display:flex; justify-content:space-between; gap:8px; margin-top:13px; }
+  .filter-menu .actions { display:flex; gap:8px; margin-top:13px; }
   .filter-menu .actions button { border:1px solid var(--line); background:white; border-radius:9px; padding:8px 12px; color:#45534c; cursor:pointer; }
   .filter-menu .actions button:hover:not(:disabled) { border-color:var(--green); color:var(--green); }
   .filter-menu .actions button:disabled { opacity:.5; cursor:not-allowed; }
   .tabs { display:flex; gap:8px; padding:0 22px 17px; border-bottom:1px solid var(--line); }
   .tab { border:0; border-radius:30px; padding:7px 14px; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; }
   .tab.active { background:var(--green-soft); color:var(--green); font-weight:700; }
-  .day { padding:18px 22px 8px; color:var(--muted); font-size:11px; font-weight:750; letter-spacing:.7px; }
   .transaction { display:flex; align-items:center; gap:13px; padding:13px 22px; border-bottom:1px solid #f0f2f0; }
   .transaction:last-child { border-bottom:0; }
   .details { flex:1; min-width:0; }
@@ -64,7 +63,7 @@
     h1 { font-size:26px; }
     .content-head { padding:18px 15px 13px; } .tools,.tabs { padding-left:15px; padding-right:15px; }
     .transaction { padding:12px 15px; gap:10px; }
-    .day { padding-left:15px; } .money { font-size:13px; }
+    .money { font-size:13px; }
   }
 </style>
 </head>
@@ -76,7 +75,7 @@
   </section>
 
   <main class="content">
-    <div class="content-head"><h2>All transactions</h2><span class="count" id="count">24 transactions</span></div>
+    <div class="content-head"><h2>All transactions</h2><span class="count" id="count">6 of 24 transactions</span></div>
     <div class="tools">
       <div class="search"><span class="icon" aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search merchant or description…" aria-label="Search transactions"></div>
       <details class="filter-menu" id="category"><summary>Housing, Groceries <span aria-hidden="true">▾</span></summary><div class="panel"><fieldset><legend>Categories</legend><label><input type="checkbox"> Income</label><label><input type="checkbox" checked> Housing</label><label><input type="checkbox"> Utilities</label><label><input type="checkbox" checked> Groceries</label><label><input type="checkbox"> Eating out</label><label><input type="checkbox"> Subscriptions</label><label><input type="checkbox"> Health</label><label><input type="checkbox"> Transport</label><label><input type="checkbox"> Shopping</label><label><input type="checkbox"> Entertainment</label><label><input type="checkbox"> Fees</label><label><input type="checkbox"> Other</label></fieldset><div class="actions"><button class="clear" type="button">Clear</button></div></div></details>
@@ -87,15 +86,12 @@
       <button class="tab" data-type="expense">Expenses</button>
     </div>
     <div id="transactions">
-      <div class="day">TODAY · NOV 11</div>
-      <div class="transaction" data-type="expense" data-category="Groceries"><div class="details"><div class="merchant">REWE</div><div class="meta">Groceries · 10:24</div></div><div class="money">−€42.50</div></div>
-      <div class="transaction" data-type="expense" data-category="Restaurants"><div class="details"><div class="merchant">Coffee Fellows</div><div class="meta">Restaurants · 08:45</div></div><div class="money">−€4.80</div></div>
-      <div class="day">NOV 10</div>
-      <div class="transaction" data-type="expense" data-category="Housing"><div class="details"><div class="merchant">Monthly Rent</div><div class="meta">Housing · 09:00</div></div><div class="money">−€850.00</div></div>
-      <div class="transaction" data-type="income" data-category="Income"><div class="details"><div class="merchant">Salary</div><div class="meta">Income · 08:00</div></div><div class="money income">+€3,200.00</div></div>
-      <div class="day">NOV 09</div>
-      <div class="transaction" data-type="expense" data-category="Transport"><div class="details"><div class="merchant">Deutschlandticket</div><div class="meta">Transport · 07:30</div></div><div class="money">−€58.00</div></div>
-      <div class="transaction" data-type="expense" data-category="Shopping"><div class="details"><div class="merchant">Online purchase</div><div class="meta">Shopping · 18:12</div></div><div class="money">−€36.99</div></div>
+      <div class="transaction" data-type="expense" data-category="Groceries"><div class="details"><div class="merchant">REWE</div><div class="meta">Groceries · 11.11.2026</div></div><div class="money">−€42.50</div></div>
+      <div class="transaction" data-type="expense" data-category="Eating out"><div class="details"><div class="merchant">Coffee Fellows</div><div class="meta">Eating out · 11.11.2026</div></div><div class="money">−€4.80</div></div>
+      <div class="transaction" data-type="expense" data-category="Housing"><div class="details"><div class="merchant">Monthly Rent</div><div class="meta">Housing · 10.11.2026</div></div><div class="money">−€850.00</div></div>
+      <div class="transaction" data-type="income" data-category="Income"><div class="details"><div class="merchant">Salary</div><div class="meta">Income · 10.11.2026</div></div><div class="money income">+€3,200.00</div></div>
+      <div class="transaction" data-type="expense" data-category="Transport"><div class="details"><div class="merchant">Deutschlandticket</div><div class="meta">Transport · 09.11.2026</div></div><div class="money">−€58.00</div></div>
+      <div class="transaction" data-type="expense" data-category="Shopping"><div class="details"><div class="merchant">Online purchase</div><div class="meta">Shopping · 09.11.2026</div></div><div class="money">−€36.99</div></div>
     </div>
     <div class="empty" id="empty">No transactions match "rewe" in November 2026.</div>
   </main>
