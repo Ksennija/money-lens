@@ -19,12 +19,6 @@
   .sub { color:var(--muted); margin:0; }
   .who { margin-bottom:4px; font-size:13px; }
   .month { border:1px solid var(--line); background:white; padding:10px 14px; border-radius:10px; color:#45534c; }
-  .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:25px; }
-  .card { background:white; border:1px solid var(--line); border-radius:var(--radius); padding:19px 20px; }
-  .card-label { color:var(--muted); font-size:13px; display:flex; align-items:center; gap:8px; }
-  .symbol { width:28px; height:28px; display:grid; place-items:center; background:#f0f3f0; border-radius:9px; color:var(--green); font-weight:700; }
-  .amount { font-size:25px; font-weight:750; letter-spacing:-.6px; margin-top:11px; }
-  .positive { color:#27845b; }
   .content { background:white; border:1px solid var(--line); border-radius:18px; overflow:hidden; }
   .content-head { padding:22px 22px 16px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
   h2 { font-size:18px; margin:0; }
@@ -63,14 +57,11 @@
   @media (max-width:700px) {
     .app { margin:16px auto; padding:0 13px 30px; }
     .heading { align-items:start; flex-direction:column; gap:13px; margin:25px 0 17px; }
-    h1 { font-size:26px; } .summary { gap:8px; }
-    .card { padding:13px 11px; } .card-label { font-size:11px; gap:5px; }
-    .symbol { width:23px; height:23px; } .amount { font-size:18px; }
+    h1 { font-size:26px; }
     .content-head { padding:18px 15px 13px; } .tools,.tabs { padding-left:15px; padding-right:15px; }
     .transaction { padding:12px 15px; gap:10px; }
     .day { padding-left:15px; } .money { font-size:13px; }
   }
-  @media (max-width:420px) { .amount { font-size:16px; } }
 </style>
 </head>
 <body>
@@ -78,12 +69,6 @@
   <section class="heading">
     <div><p class="sub who">Logged in as user@example.com</p><h1>Transactions</h1><p class="sub">Manage and track your money</p></div>
     <div class="month">November 2026&nbsp; ▾</div>
-  </section>
-
-  <section class="summary">
-    <article class="card"><div class="card-label"><span class="symbol">↙</span> Income</div><div class="amount positive">€3,200.00</div></article>
-    <article class="card"><div class="card-label"><span class="symbol">↗</span> Expenses</div><div class="amount">€1,845.30</div></article>
-    <article class="card"><div class="card-label"><span class="symbol">◈</span> Balance</div><div class="amount positive">€1,354.70</div></article>
   </section>
 
   <main class="content">
