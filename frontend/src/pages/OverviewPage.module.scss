@@ -108,24 +108,11 @@
 }
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-
-  @include m.breakpoint-down(bp.$bp-md) {
-    padding: 14px;
-  }
+  @include m.card;
 }
 
 .wide {
   margin-top: 18px;
-}
-
-.label {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: var(--text-xs);
 }
 
 .value {
@@ -136,15 +123,6 @@
   @include m.breakpoint-down(bp.$bp-md) {
     font-size: var(--text-xl);
   }
-}
-
-// Amounts that are good news are green and bad news red. The arrow and the words say the same.
-.positive {
-  color: var(--positive);
-}
-
-.negative {
-  color: var(--red);
 }
 
 .change {

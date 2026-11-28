@@ -1,0 +1,39 @@
+@use "../../styles/breakpoints" as bp;
+@use "../../styles/mixins" as m;
+
+// Values follow the summary cards in frontend/design/overview.html.
+
+.card {
+  @include m.card;
+}
+
+.label {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
+}
+
+.value {
+  margin: var(--space-2) 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    font-size: var(--text-xl);
+  }
+}
+
+.change {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
+}
+
+// These come after .value and .change, so their colour wins.
+.good {
+  color: var(--positive);
+}
+
+.bad {
+  color: var(--red);
+}
