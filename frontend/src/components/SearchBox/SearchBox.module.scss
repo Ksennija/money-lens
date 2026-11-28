@@ -1,0 +1,38 @@
+// Layout and values follow the search box in frontend/design/transactions.html.
+
+.search {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 180px;
+}
+
+.input {
+  width: 100%;
+  padding: 11px 13px 11px 38px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: inherit;
+
+  &::placeholder {
+    color: var(--muted-strong);
+    opacity: 1;
+  }
+
+  // The focus ring comes from the global :focus-visible rule; the border follows it.
+  &:focus {
+    border-color: var(--green);
+  }
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--muted-strong);
+  font-size: var(--text-2xl);
+  line-height: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
