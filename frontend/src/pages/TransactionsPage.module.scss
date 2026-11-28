@@ -1,0 +1,10 @@
+// The toolbar row of frontend/design/transactions.html: the search box grows to fill the row and
+// the category filter keeps its own size.
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  margin: var(--space-4) 0;
+}
