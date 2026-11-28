@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import TransactionsPage from "./TransactionsPage";
@@ -288,6 +288,248 @@ describe("TransactionsPage", () => {
       await screen.findByText(/no transactions yet/i);
 
       expect(screen.queryByRole("button", { expanded: false })).toBeNull();
+    });
+  });
+
+  describe("search", () => {
+    const SEARCH_DELAY = 300;
+    const searchBox = () => screen.getByRole("searchbox", { name: "Search transactions" }) as HTMLInputElement;
+    const counterparties = () => bodyRows().map((row) => within(row).getAllByRole("cell")[1].textContent);
+    const MUELLER = list("2026-09", [
+      tx("2026-09-30", -490, "Bank", "Account fee"),
+      tx("2026-09-10", -500, "MÜLLER Bäckerei", "Brötchen"),
+    ]);
+
+    // Types the text with a clock the test controls, so the pause can be measured. It is a real
+    // clock again afterwards, so the page can load data as usual.
+    async function typeInSearch(text: string, { wait = true } = {}) {
+      jest.useFakeTimers();
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      await user.type(searchBox(), text);
+      if (wait) act(() => void jest.advanceTimersByTime(SEARCH_DELAY));
+      jest.useRealTimers();
+    }
+
+    async function clearSearch() {
+      jest.useFakeTimers();
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      await user.clear(searchBox());
+      jest.useRealTimers();
+    }
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it("shows a search box named Search transactions, empty, with every row", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+
+      renderPage();
+      await screen.findByRole("table");
+
+      expect(searchBox().value).toBe("");
+      expect(searchBox().getAttribute("placeholder")).toBe("Search merchant or description…");
+      expect(counterparties()).toEqual(["Bank", "Acme GmbH", "REWE Markt"]);
+    });
+
+    it("filters 300 ms after the last keystroke, and not before", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      jest.useFakeTimers();
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      await user.type(searchBox(), "rewe");
+      expect(searchBox().value).toBe("rewe");
+      act(() => void jest.advanceTimersByTime(SEARCH_DELAY - 1));
+      expect(counterparties()).toEqual(["Bank", "Acme GmbH", "REWE Markt"]);
+
+      act(() => void jest.advanceTimersByTime(1));
+      expect(counterparties()).toEqual(["REWE Markt"]);
+    });
+
+    it.each([
+      ["rewe", ["REWE Markt"]],
+      ["REWE", ["REWE Markt"]],
+      ["  ReWe  ", ["REWE Markt"]],
+      ["account fee", ["Bank"]],
+      ["EXPENSE REIMBURSEMENT", ["Acme GmbH"]],
+      ["card payment", ["REWE Markt"]],
+    ])("finds %j in the counterparty or the details, whatever the letter case", async (text, expected) => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch(text);
+
+      expect(counterparties()).toEqual(expected);
+    });
+
+    it("ignores letter case for letters outside ASCII too", async () => {
+      mockApi({ "/api/transactions": [MUELLER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch("müller");
+
+      expect(counterparties()).toEqual(["MÜLLER Bäckerei"]);
+    });
+
+    it.each([["fees"], ["2026"], ["4.90"], ["groceries"]])(
+      "does not search the category name, the date or the amount: %j",
+      async (text) => {
+        mockApi({
+          "/api/transactions": [
+            list("2026-09", [tx("2026-09-30", -490, "Bank", "Account fee", "EUR", "fees")]),
+          ],
+        });
+        renderPage();
+        await screen.findByRole("table");
+
+        await typeInSearch(text);
+
+        expect(screen.queryByRole("table")).toBeNull();
+        expect(screen.getByText(`No transactions match "${text}" in September 2026.`)).not.toBeNull();
+      }
+    );
+
+    it("keeps the order the server sent", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch("a");
+
+      expect(counterparties()).toEqual(["Bank", "Acme GmbH", "REWE Markt"]);
+    });
+
+    it("sends no request when the text changes", async () => {
+      const fetchMock = mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch("rewe");
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows every row again at once when the box is cleared, without waiting", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+      await typeInSearch("rewe");
+      expect(counterparties()).toEqual(["REWE Markt"]);
+
+      await clearSearch();
+
+      expect(counterparties()).toEqual(["Bank", "Acme GmbH", "REWE Markt"]);
+    });
+
+    it("works together with the category filter: a transaction must match both", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+      await userEvent.click(screen.getByRole("button", { expanded: false }));
+      await userEvent.click(screen.getByRole("checkbox", { name: "Groceries" }));
+
+      await typeInSearch("lidl");
+      expect(counterparties()).toEqual(["Lidl"]);
+
+      await clearSearch();
+      expect(counterparties()).toEqual(["Lidl", "REWE Markt"]);
+    });
+
+    it("names the text when nothing matches, and the checked categories too", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch("zzz");
+      expect(screen.getByText('No transactions match "zzz" in September 2026.')).not.toBeNull();
+
+      await userEvent.click(screen.getByRole("button", { expanded: false }));
+      await userEvent.click(screen.getByRole("checkbox", { name: "Groceries" }));
+      await userEvent.click(screen.getByRole("checkbox", { name: "Fees" }));
+      expect(screen.getByText('No transactions match "zzz" in Groceries and Fees in September 2026.')).not.toBeNull();
+    });
+
+    it("shows the typed text as text, never as HTML", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      const { container } = renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch("<b>x</b>");
+
+      expect(screen.getByText('No transactions match "<b>x</b>" in September 2026.')).not.toBeNull();
+      expect(container.querySelector("b")).toBeNull();
+    });
+
+    it("keeps the text when going to the previous and the next month", async () => {
+      mockApi({
+        "/api/transactions": [MIXED_SEPTEMBER],
+        "/api/transactions?month=2026-08": [MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findByRole("table");
+      await typeInSearch("lidl");
+
+      await userEvent.click(button(/previous month/i));
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(searchBox().value).toBe("lidl");
+      expect(counterparties()).toEqual(["Lidl"]);
+
+      mockApi({ "/api/transactions?month=2026-09": [MIXED_SEPTEMBER] });
+      await userEvent.click(button(/next month/i));
+      await screen.findByRole("heading", { name: "September 2026" });
+      expect(searchBox().value).toBe("lidl");
+      expect(counterparties()).toEqual(["Lidl"]);
+    });
+
+    it("keeps the text after an error and Retry", async () => {
+      mockApi({
+        "/api/transactions": [MIXED_SEPTEMBER],
+        "/api/transactions?month=2026-08": [SERVER_ERROR, MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findByRole("table");
+      await typeInSearch("lidl");
+      await userEvent.click(button(/previous month/i));
+      await screen.findByRole("alert");
+      expect(screen.queryByRole("searchbox")).toBeNull();
+
+      await userEvent.click(button(/retry/i));
+
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(searchBox().value).toBe("lidl");
+      expect(counterparties()).toEqual(["Lidl"]);
+    });
+
+    it("is not shown when the user has no transactions at all, or on an error", async () => {
+      mockApi({ "/api/transactions": [NOTHING_AT_ALL] });
+      const first = renderPage();
+      await screen.findByText(/no transactions yet/i);
+      expect(screen.queryByRole("searchbox")).toBeNull();
+      first.unmount();
+
+      mockApi({ "/api/transactions": [SERVER_ERROR] });
+      renderPage();
+      await screen.findByRole("alert");
+      expect(screen.queryByRole("searchbox")).toBeNull();
+    });
+
+    it("causes no update or error when the page goes away during the pause", async () => {
+      const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      const { unmount } = renderPage();
+      await screen.findByRole("table");
+
+      await typeInSearch("rewe", { wait: false });
+      jest.useFakeTimers();
+      unmount();
+      act(() => void jest.advanceTimersByTime(SEARCH_DELAY));
+      jest.useRealTimers();
+
+      expect(consoleError).not.toHaveBeenCalled();
     });
   });
 

@@ -3,13 +3,19 @@ import { Link } from "react-router-dom";
 import { getTransactions, type Transaction } from "../api/transactions";
 import CategoryFilter from "../components/CategoryFilter/CategoryFilter";
 import MonthNav from "../components/MonthNav/MonthNav";
+import SearchBox from "../components/SearchBox/SearchBox";
 import {
   useMonthNavigation,
   type MonthResult,
 } from "../hooks/useMonthNavigation";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { describeCategories } from "../lib/categories";
 import { formatDate } from "../lib/dates";
 import { formatMonth, previousMonth } from "../lib/months";
+import styles from "./TransactionsPage.module.scss";
+
+// How long the search waits after the last keystroke before it filters the list.
+const SEARCH_DELAY_MS = 300;
 
 type MonthTransactions = { month: string; transactions: Transaction[] };
 
@@ -31,12 +37,44 @@ function formatMoney(cents: number, currency: string): string {
   );
 }
 
+// The search ignores letter case and looks in the counterparty and in the details. The text is
+// already trimmed; an empty text finds everything.
+function matchesSearch(transaction: Transaction, searchText: string): boolean {
+  if (searchText === "") return true;
+  const needle = searchText.toLocaleLowerCase();
+  return (
+    transaction.counterparty.toLocaleLowerCase().includes(needle) ||
+    transaction.details.toLocaleLowerCase().includes(needle)
+  );
+}
+
+// A transaction stays when it is in one of the checked categories (all, when none is checked)
+// and matches the search. The order is the one the server sent.
 function visibleTransactions(
   transactions: Transaction[],
-  selectedCategories: string[]
+  selectedCategories: string[],
+  searchText: string
 ): Transaction[] {
-  if (selectedCategories.length === 0) return transactions;
-  return transactions.filter((t) => selectedCategories.includes(t.category));
+  return transactions.filter(
+    (t) =>
+      (selectedCategories.length === 0 ||
+        selectedCategories.includes(t.category)) &&
+      matchesSearch(t, searchText)
+  );
+}
+
+function describeNoMatches(
+  searchText: string,
+  selectedCategories: string[],
+  month: string
+): string {
+  const where =
+    selectedCategories.length > 0
+      ? `${describeCategories(selectedCategories)} in ${month}`
+      : month;
+  return searchText === ""
+    ? `No transactions in ${where}.`
+    : `No transactions match "${searchText}" in ${where}.`;
 }
 
 export default function TransactionsPage() {
@@ -44,6 +82,14 @@ export default function TransactionsPage() {
     useMonthNavigation(fetchTransactions);
   // Category ids to show. Empty means all.
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  // What the user typed, and the trimmed text the list uses. The list follows the typing after a
+  // short pause; clearing the box (or only spaces) shows everything at once.
+  const [searchText, setSearchText] = useState("");
+  const appliedSearch = useDebouncedValue(
+    searchText,
+    SEARCH_DELAY_MS,
+    (text) => text.trim() === ""
+  ).trim();
 
   // The latest month always has a transaction, so an empty answer for it means there are none.
   const noTransactions =
@@ -59,7 +105,7 @@ export default function TransactionsPage() {
 
   const visible =
     view.status === "ready"
-      ? visibleTransactions(view.data.transactions, selectedCategories)
+      ? visibleTransactions(view.data.transactions, selectedCategories, appliedSearch)
       : [];
   const monthHasTransactions =
     view.status === "ready" && view.data.transactions.length > 0;
@@ -96,10 +142,18 @@ export default function TransactionsPage() {
             onSelect={load}
           />
           <h2>{formatMonth(shown.month)}</h2>
-          <CategoryFilter
-            selected={selectedCategories}
-            onChange={setSelectedCategories}
-          />
+          <div className={styles.tools}>
+            <SearchBox
+              value={searchText}
+              onChange={setSearchText}
+              label="Search transactions"
+              placeholder="Search merchant or description…"
+            />
+            <CategoryFilter
+              selected={selectedCategories}
+              onChange={setSelectedCategories}
+            />
+          </div>
         </>
       )}
 
@@ -112,9 +166,13 @@ export default function TransactionsPage() {
         )}
 
       {monthHasTransactions && visible.length === 0 && (
-        <p>{`No transactions in ${describeCategories(
-          selectedCategories
-        )} in ${formatMonth(view.data.month)}.`}</p>
+        <p>
+          {describeNoMatches(
+            appliedSearch,
+            selectedCategories,
+            formatMonth(view.data.month)
+          )}
+        </p>
       )}
 
       {visible.length > 0 && (
