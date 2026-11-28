@@ -13,7 +13,7 @@ import OverviewPage from "./pages/OverviewPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import { getCurrentUser, type CurrentUser } from "./api/session";
-import AuthenticatedPage from "./pages/AuthenticatedPage";
+import AuthenticatedLayout from "./components/AuthenticatedLayout/AuthenticatedLayout";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 
@@ -53,7 +53,7 @@ function App() {
     const user = session.user;
     // Every signed-in page shares one layout: the main landmark and "Logged in as …".
     const signedIn = (page: ReactNode) => (
-      <AuthenticatedPage user={user}>{page}</AuthenticatedPage>
+      <AuthenticatedLayout user={user}>{page}</AuthenticatedLayout>
     );
     return (
       <>

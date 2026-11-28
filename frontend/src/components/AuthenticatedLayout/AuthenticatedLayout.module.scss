@@ -1,5 +1,5 @@
-@use "../styles/breakpoints" as bp;
-@use "../styles/mixins" as m;
+@use "../../styles/breakpoints" as bp;
+@use "../../styles/mixins" as m;
 
 // Width and side space match the header in NavBar.module.scss and .app in
 // frontend/design/overview.html.
@@ -14,12 +14,21 @@
   }
 }
 
-.user {
+// The user on the left. Anything else in the bar, such as a dropdown, goes on the right.
+.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
   margin: var(--space-8) 0 var(--space-1);
-  color: var(--muted-strong);
-  font-size: var(--text-xs);
 
   @include m.breakpoint-down(bp.$bp-md) {
     margin-top: var(--space-5);
   }
+}
+
+.user {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
 }
