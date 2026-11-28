@@ -163,7 +163,7 @@ describe("App", () => {
       await screen.findByRole("heading", { name: "September 2026 · EUR" })
     ).not.toBeNull();
     expect(
-      screen.getByRole("heading", { name: /import transactions/i })
+      screen.getByRole("button", { name: "Import transactions" })
     ).not.toBeNull();
     expect(screen.queryByRole("heading", { name: /sign in/i })).toBeNull();
   });

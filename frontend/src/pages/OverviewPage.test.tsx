@@ -347,6 +347,98 @@ describe("OverviewPage", () => {
     });
   });
 
+  describe("import dialog", () => {
+    const CSV = new File(["Booking date;Amount"], "export.csv", { type: "text/csv" });
+    const IMPORTED = { status: 200, body: { code: "imported", imported: 1, duplicates: 0, rejected: [] } };
+
+    function transactionCalls(fetchMock: { mock: { calls: unknown[][] } }): string[] {
+      return fetchMock.mock.calls
+        .map(([url]) => String(url))
+        .filter((url) => url.startsWith("/api/transactions?month="));
+    }
+
+    async function openDialog() {
+      await userEvent.click(screen.getByRole("button", { name: "Import transactions" }));
+    }
+
+    async function importFile() {
+      await userEvent.upload(screen.getByLabelText(/csv file/i), CSV);
+      await userEvent.click(screen.getByRole("button", { name: "Import" }));
+    }
+
+    it("has an Import transactions button in the header that opens the import form in a dialog", async () => {
+      mockApi({ "/api/comparison": [SEPTEMBER] });
+
+      renderPage();
+      await screen.findByRole("article", { name: INCOME });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await openDialog();
+
+      const dialog = screen.getByRole("dialog", { name: "Import transactions" });
+      expect(within(dialog).getByLabelText(/csv file/i)).not.toBeNull();
+    });
+
+    it("closes with the Close button and puts the focus back on the button", async () => {
+      mockApi({ "/api/comparison": [SEPTEMBER] });
+
+      renderPage();
+      await screen.findByRole("article", { name: INCOME });
+      await openDialog();
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Import transactions" }));
+    });
+
+    it("loads the totals and the recent transactions again after a successful import", async () => {
+      const fetchMock = mockApi({
+        "/api/comparison": [SEPTEMBER, SEPTEMBER],
+        "/api/transactions/import": [IMPORTED],
+      });
+
+      renderPage();
+      await screen.findByRole("article", { name: INCOME });
+      await openDialog();
+      await importFile();
+
+      expect(await within(screen.getByRole("dialog")).findByRole("status")).not.toBeNull();
+      await screen.findByRole("article", { name: INCOME });
+      expect(comparisonCalls(fetchMock)).toHaveLength(2);
+      expect(transactionCalls(fetchMock)).toHaveLength(2);
+    });
+
+    it("does not load anything again when the import fails", async () => {
+      const fetchMock = mockApi({
+        "/api/comparison": [SEPTEMBER],
+        "/api/transactions/import": [{ status: 400, body: { code: "invalid-file", message: "Upload a CSV file" } }],
+      });
+
+      renderPage();
+      await screen.findByRole("article", { name: INCOME });
+      await openDialog();
+      await importFile();
+
+      expect(await within(screen.getByRole("dialog")).findByRole("alert")).not.toBeNull();
+      expect(comparisonCalls(fetchMock)).toHaveLength(1);
+      expect(transactionCalls(fetchMock)).toHaveLength(1);
+    });
+
+    it("is available in the empty state, which points to it, and shows the new data after the first import", async () => {
+      mockApi({
+        "/api/comparison": [EMPTY, SEPTEMBER],
+        "/api/transactions/import": [IMPORTED],
+      });
+
+      renderPage();
+      expect((await screen.findByText(/no transactions yet/i)).textContent).toMatch(/import transactions/i);
+      await openDialog();
+      await importFile();
+
+      expect(await screen.findByRole("article", { name: INCOME })).not.toBeNull();
+      expect(screen.queryByText(/no transactions yet/i)).toBeNull();
+    });
+  });
+
   describe("month navigation", () => {
     it("goes to the previous month and shows its cards", async () => {
       const fetchMock = mockApi({ "/api/comparison": [SEPTEMBER], "/api/comparison?month=2026-08": [AUGUST] });

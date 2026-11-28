@@ -18,6 +18,28 @@
   }
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.import {
+  padding: 10px 15px;
+  background: var(--green);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--surface);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--green-hover);
+  }
+}
+
 .title {
   margin-bottom: var(--space-1);
   font-size: var(--text-3xl);

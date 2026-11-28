@@ -1,5 +1,7 @@
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getComparison, type Comparison, type Totals } from "../api/comparison";
+import ImportDialog from "../components/ImportDialog/ImportDialog";
 import MonthNav from "../components/MonthNav/MonthNav";
 import RatesNotice from "../components/RatesNotice/RatesNotice";
 import TransactionList from "../components/TransactionList/TransactionList";
@@ -113,6 +115,9 @@ function StatCard({
 export default function OverviewPage() {
   const { view, requested, latestMonth, load } =
     useMonthNavigation(fetchComparison);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importCount, setImportCount] = useState(0);
+  const importButton = useRef<HTMLButtonElement>(null);
 
   // The latest month always has a transaction, so an all-zero answer for it means there are none.
   const noTransactions =
@@ -127,8 +132,20 @@ export default function OverviewPage() {
       : null;
   const busy = view.status === "loading";
   const recent = useRecentTransactions(
-    view.status === "ready" && !noTransactions ? view.data.month : null
+    view.status === "ready" && !noTransactions ? view.data.month : null,
+    importCount
   );
+  // After an import both the totals and the recent transactions may have changed.
+  function handleImported() {
+    load(requested);
+    setImportCount((count) => count + 1);
+  }
+
+  function closeImport() {
+    setImportOpen(false);
+    importButton.current?.focus();
+  }
+
   const highlight =
     view.status === "ready" && !noTransactions
       ? describeSpendingChange(view.data)
@@ -141,24 +158,35 @@ export default function OverviewPage() {
           <h1 className={styles.title}>Overview</h1>
           <p className={styles.subtitle}>A clear picture of your money</p>
         </div>
-        {shown && (
-          <MonthNav
-            month={shown.month}
-            previousMonth={shown.previousMonth}
-            latestMonth={latestMonth}
-            busy={busy}
-            onSelect={load}
+        <div className={styles.actions}>
+          {shown && (
+            <MonthNav
+              month={shown.month}
+              previousMonth={shown.previousMonth}
+              latestMonth={latestMonth}
+              busy={busy}
+              onSelect={load}
+            >
+              <h2 className={styles.month}>
+                {formatMonth(shown.month)} · {shown.currency}
+              </h2>
+            </MonthNav>
+          )}
+          <button
+            ref={importButton}
+            type="button"
+            className={styles.import}
+            onClick={() => setImportOpen(true)}
           >
-            <h2 className={styles.month}>
-              {formatMonth(shown.month)} · {shown.currency}
-            </h2>
-          </MonthNav>
-        )}
+            Import transactions
+          </button>
+        </div>
       </header>
 
       {noTransactions && (
         <p className={styles.message}>
-          No transactions yet. Import a CSV file below to see your overview.
+          No transactions yet. Use Import transactions to add a CSV file and see
+          your overview.
         </p>
       )}
 
@@ -308,6 +336,12 @@ export default function OverviewPage() {
           )}
         </>
       )}
+
+      <ImportDialog
+        open={importOpen}
+        onClose={closeImport}
+        onImported={handleImported}
+      />
     </section>
   );
 }
