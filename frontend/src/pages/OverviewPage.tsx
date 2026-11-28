@@ -4,6 +4,7 @@ import { getComparison, type Comparison, type Totals } from "../api/comparison";
 import ImportDialog from "../components/ImportDialog/ImportDialog";
 import MonthNav from "../components/MonthNav/MonthNav";
 import RatesNotice from "../components/RatesNotice/RatesNotice";
+import StatCard, { type Tone } from "../components/StatCard/StatCard";
 import TransactionList from "../components/TransactionList/TransactionList";
 import {
   useMonthNavigation,
@@ -72,9 +73,9 @@ function changeTone(
   change: number, // only the sign matters: cents or percent
   comparison: Comparison,
   higherIsBetter: boolean
-): string | undefined {
+): Tone | undefined {
   if (change === 0 || isEmpty(comparison.previous)) return undefined;
-  return change > 0 === higherIsBetter ? styles.good : styles.bad;
+  return change > 0 === higherIsBetter ? "good" : "bad";
 }
 
 async function fetchComparison(
@@ -82,34 +83,6 @@ async function fetchComparison(
 ): Promise<MonthResult<Comparison>> {
   const result = await getComparison(month);
   return result.ok ? { ok: true, data: result.comparison } : result;
-}
-
-type StatCardProps = {
-  id: string;
-  label: string;
-  value: string;
-  valueClass?: string;
-  change: string;
-  changeClass?: string;
-};
-
-function StatCard({
-  id,
-  label,
-  value,
-  valueClass,
-  change,
-  changeClass,
-}: StatCardProps) {
-  return (
-    <article className={styles.card} aria-labelledby={id}>
-      <p id={id} className={styles.label}>
-        {label}
-      </p>
-      <p className={cx(styles.value, valueClass)}>{value}</p>
-      <p className={cx(styles.change, changeClass)}>{change}</p>
-    </article>
-  );
 }
 
 export default function OverviewPage() {
@@ -146,6 +119,10 @@ export default function OverviewPage() {
     importButton.current?.focus();
   }
 
+  const spendingTone =
+    view.status === "ready" && !noTransactions
+      ? changeTone(view.data.change.spendingPercent ?? 0, view.data, false)
+      : undefined;
   const highlight =
     view.status === "ready" && !noTransactions
       ? describeSpendingChange(view.data)
@@ -219,48 +196,41 @@ export default function OverviewPage() {
         <>
           <div className={styles.grid}>
             <StatCard
-              id="overview-income"
               label="Total income"
               value={formatMoney(
                 view.data.current.incomeCents,
                 view.data.currency
               )}
-              valueClass={styles.positive}
+              valueTone="good"
               change={formatChange(view.data.change.incomeCents, view.data)}
-              changeClass={changeTone(
+              changeTone={changeTone(
                 view.data.change.incomeCents,
                 view.data,
                 true
               )}
             />
             <StatCard
-              id="overview-spent"
               label="Total expenses"
               value={formatMoney(
                 view.data.current.spendingCents,
                 view.data.currency
               )}
               change={formatChange(view.data.change.spendingCents, view.data)}
-              changeClass={changeTone(
+              changeTone={changeTone(
                 view.data.change.spendingCents,
                 view.data,
                 false
               )}
             />
             <StatCard
-              id="overview-saved"
               label="You saved"
               value={formatMoney(
                 view.data.current.netCents,
                 view.data.currency
               )}
-              valueClass={
-                view.data.current.netCents < 0
-                  ? styles.negative
-                  : styles.positive
-              }
+              valueTone={view.data.current.netCents < 0 ? "bad" : "good"}
               change={formatChange(view.data.change.netCents, view.data)}
-              changeClass={changeTone(
+              changeTone={changeTone(
                 view.data.change.netCents,
                 view.data,
                 true
@@ -289,11 +259,7 @@ export default function OverviewPage() {
             <p
               className={cx(
                 styles.change,
-                changeTone(
-                  view.data.change.spendingPercent ?? 0,
-                  view.data,
-                  false
-                )
+                spendingTone && styles[spendingTone]
               )}
             >
               {formatSpendingPercent(view.data)}
