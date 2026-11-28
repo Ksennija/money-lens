@@ -24,3 +24,13 @@
     cursor: not-allowed;
   }
 }
+
+// The name of the month, a pill between the two buttons.
+.name {
+  padding: 5px 10px;
+  background: var(--soft);
+  border-radius: var(--radius-pill);
+  color: var(--green);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+}

@@ -11,7 +11,7 @@ import {
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { describeCategories } from "../lib/categories";
 import { formatDate } from "../lib/dates";
-import { formatMonth, previousMonth } from "../lib/months";
+import { formatMonth } from "../lib/months";
 import styles from "./TransactionsPage.module.scss";
 
 // How long the search waits after the last keystroke before it filters the list.
@@ -136,12 +136,10 @@ export default function TransactionsPage() {
         <>
           <MonthNav
             month={shown.month}
-            previousMonth={previousMonth(shown.month)}
             latestMonth={latestMonth}
             busy={busy}
             onSelect={load}
           />
-          <h2>{formatMonth(shown.month)}</h2>
           <div className={styles.tools}>
             <SearchBox
               value={searchText}
