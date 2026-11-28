@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ImportPage from "./ImportPage";
+import ImportComponent from "./ImportComponent";
 
 function mockFetchResponse(status: number, body: unknown) {
   const fetchMock = jest.fn(async (_url: string, _init?: RequestInit) => ({
@@ -20,7 +20,7 @@ async function chooseAndImport(file: File = CSV) {
   await userEvent.click(screen.getByRole("button", { name: /import/i }));
 }
 
-describe("ImportPage", () => {
+describe("ImportComponent", () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -33,7 +33,7 @@ describe("ImportPage", () => {
       rejected: [],
     });
 
-    render(<ImportPage />);
+    render(<ImportComponent />);
     await chooseAndImport();
 
     const status = await screen.findByRole("status");
@@ -59,7 +59,7 @@ describe("ImportPage", () => {
       ],
     });
 
-    render(<ImportPage />);
+    render(<ImportComponent />);
     await chooseAndImport();
 
     expect((await screen.findByRole("status")).textContent).toBe(
@@ -81,7 +81,7 @@ describe("ImportPage", () => {
       missingColumns: ["Amount"],
     });
 
-    render(<ImportPage />);
+    render(<ImportComponent />);
     await chooseAndImport();
 
     expect((await screen.findByRole("alert")).textContent).toBe("Missing required columns: Amount");
@@ -93,7 +93,7 @@ describe("ImportPage", () => {
       throw new TypeError("Failed to fetch");
     }) as unknown as typeof fetch;
 
-    render(<ImportPage />);
+    render(<ImportComponent />);
     await chooseAndImport();
 
     expect((await screen.findByRole("alert")).textContent).toBe("Something went wrong");
@@ -102,7 +102,7 @@ describe("ImportPage", () => {
   it("asks for a file without sending a request when none is chosen", async () => {
     const fetchMock = mockFetchResponse(200, { code: "imported", imported: 0, duplicates: 0, rejected: [] });
 
-    render(<ImportPage />);
+    render(<ImportComponent />);
     await userEvent.click(screen.getByRole("button", { name: /import/i }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("Upload a CSV file");
@@ -111,7 +111,7 @@ describe("ImportPage", () => {
 
   it("disables the button and clears the previous result while the upload is in flight", async () => {
     mockFetchResponse(400, { code: "invalid-file", message: "Upload a CSV file" });
-    render(<ImportPage />);
+    render(<ImportComponent />);
     await chooseAndImport();
     await screen.findByRole("alert");
 
@@ -137,5 +137,29 @@ describe("ImportPage", () => {
       "1 imported, 0 duplicates skipped, 0 rows rejected"
     );
     expect((screen.getByRole("button", { name: /import/i }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("calls onImported after a successful import", async () => {
+    mockFetchResponse(200, { code: "imported", imported: 3, duplicates: 0, rejected: [] });
+    const onImported = jest.fn();
+
+    render(<ImportComponent onImported={onImported} />);
+    await chooseAndImport();
+    await screen.findByRole("status");
+
+    expect(onImported).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onImported when the import fails or no file is chosen", async () => {
+    mockFetchResponse(400, { code: "missing-columns", message: "Missing required columns: Amount" });
+    const onImported = jest.fn();
+
+    render(<ImportComponent onImported={onImported} />);
+    await userEvent.click(screen.getByRole("button", { name: /import/i }));
+    await screen.findByRole("alert");
+    await chooseAndImport();
+    await screen.findByText("Missing required columns: Amount");
+
+    expect(onImported).not.toHaveBeenCalled();
   });
 });

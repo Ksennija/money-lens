@@ -1,5 +1,6 @@
 import { useState, type SubmitEvent } from 'react';
-import { importTransactions, type ImportResult } from '../api/importTransactions';
+import { importTransactions, type ImportResult } from '../../api/importTransactions';
+import styles from './ImportComponent.module.scss';
 
 const NO_FILE_RESULT: ImportResult = {
   ok: false,
@@ -7,7 +8,10 @@ const NO_FILE_RESULT: ImportResult = {
   message: 'Upload a CSV file',
 };
 
-export default function ImportPage() {
+// onImported is called after every successful import, so the page behind can show the new data.
+type ImportComponentProps = { onImported?: () => void };
+
+export default function ImportComponent({ onImported }: ImportComponentProps) {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [pending, setPending] = useState(false);
@@ -22,7 +26,9 @@ export default function ImportPage() {
     setPending(true);
     setResult(null);
     try {
-      setResult(await importTransactions(file));
+      const importResult = await importTransactions(file);
+      setResult(importResult);
+      if (importResult.ok) onImported?.();
     } finally {
       setPending(false);
     }
@@ -30,28 +36,33 @@ export default function ImportPage() {
 
   return (
     <section>
-      <h2>Import transactions</h2>
+      <h2 className={styles.title}>Import transactions</h2>
       <form onSubmit={handleSubmit}>
-        <label>
-          CSV file
+        <div className={styles.field}>
+          <label htmlFor="csv-file" className={styles.label}>
+            CSV file
+          </label>
           <input
+            id="csv-file"
+            name="file"
             type="file"
             accept=".csv,text/csv"
+            className={styles.input}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
-        </label>
-        <button type="submit" disabled={pending}>
+        </div>
+        <button type="submit" className={styles.button} disabled={pending}>
           Import
         </button>
       </form>
       {result?.ok && (
         <>
-          <p role="status">
+          <p role="status" className={`${styles.message} ${styles.success}`}>
             {result.imported} imported, {result.duplicates} duplicates skipped,{' '}
             {result.rejected.length} rows rejected
           </p>
           {result.rejected.length > 0 && (
-            <ul>
+            <ul className={styles.rejected}>
               {result.rejected.map(({ row, reason }) => (
                 <li key={row}>
                   Row {row}: {reason.replace(/-/g, ' ')}
@@ -62,7 +73,7 @@ export default function ImportPage() {
         </>
       )}
       {result && !result.ok && (
-        <p role="alert" style={{ color: 'crimson' }}>
+        <p role="alert" className={`${styles.message} ${styles.error}`}>
           {result.message}
         </p>
       )}

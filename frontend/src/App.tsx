@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import NavBar from "./components/NavBar/NavBar";
-import ImportPage from "./pages/ImportPage";
+import ImportComponent from "./components/ImportComponent/ImportComponent";
 import InsightsPage from "./pages/InsightsPage";
 import LandingPage from "./pages/LandingPage";
 import OverviewPage from "./pages/OverviewPage";
@@ -71,7 +71,7 @@ function App() {
             element={signedIn(
               <>
                 <OverviewPage />
-                <ImportPage />
+                <ImportComponent />
               </>
             )}
           />
