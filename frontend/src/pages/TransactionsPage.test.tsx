@@ -548,6 +548,234 @@ describe("TransactionsPage", () => {
 
       expect(consoleError).not.toHaveBeenCalled();
     });
+
+    it("narrows the count when the search narrows the list, and widens it when the box is cleared", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      expect(screen.getByText("3 transactions")).not.toBeNull();
+
+      await typeInSearch("rewe");
+      expect(screen.getByText("1 of 3 transactions")).not.toBeNull();
+
+      await clearSearch();
+      expect(screen.getByText("3 transactions")).not.toBeNull();
+    });
+
+    it("names the tab, the text and the checked categories when nothing matches", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      await userEvent.click(screen.getByRole("button", { name: "Expenses" }));
+
+      await typeInSearch("zzz");
+
+      expect(screen.getByText('No expense transactions match "zzz" in September 2026.')).not.toBeNull();
+    });
+  });
+
+  describe("count", () => {
+    it("says how many transactions the month has", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      expect(screen.getByText("3 transactions")).not.toBeNull();
+    });
+
+    it("uses the singular for one transaction", async () => {
+      mockApi({ "/api/transactions": [list("2026-09", [tx("2026-09-30", -490, "Bank", "Account fee")])] });
+
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      expect(screen.getByText("1 transaction")).not.toBeNull();
+    });
+
+    it("says how many of the month's transactions are shown when the categories narrow the list", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      await userEvent.click(screen.getByRole("button", { expanded: false }));
+      await userEvent.click(screen.getByRole("checkbox", { name: "Groceries" }));
+
+      expect(screen.getByText("2 of 3 transactions")).not.toBeNull();
+    });
+
+    it("says how many are shown when a tab narrows the list", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      await userEvent.click(screen.getByRole("button", { name: "Income" }));
+
+      expect(screen.getByText("1 of 3 transactions")).not.toBeNull();
+    });
+
+    it("is announced politely when it changes", async () => {
+      mockApi({ "/api/transactions": [SEPTEMBER] });
+
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      expect(screen.getByText("3 transactions").getAttribute("aria-live")).toBe("polite");
+    });
+
+    it("is not shown while loading, when the month is empty, or when the user has no transactions at all", async () => {
+      mockApi({ "/api/transactions": [NOTHING_AT_ALL] });
+      const first = renderPage();
+      await screen.findByText(/no transactions yet/i);
+      expect(screen.queryByText(/\d+ (of \d+ )?transactions?$/)).toBeNull();
+      first.unmount();
+
+      mockApi({ "/api/transactions": [SEPTEMBER], "/api/transactions?month=2026-08": [list("2026-08", [])] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      await userEvent.click(button(/previous month/i));
+      await screen.findByText("No transactions in August 2026.");
+      expect(screen.queryByText(/\d+ (of \d+ )?transactions?$/)).toBeNull();
+    });
+  });
+
+  describe("tabs", () => {
+    const WITH_INCOME = list("2026-09", [
+      tx("2026-09-30", -490, "Bank", "Account fee", "EUR", "fees"),
+      tx("2026-09-12", -3100, "Lidl", "Card payment groceries", "EUR", "groceries"),
+      tx("2026-09-10", 320000, "Employer", "Salary", "EUR", "income"),
+    ]);
+    const WITH_ZERO = list("2026-09", [
+      tx("2026-09-30", -490, "Bank", "Account fee"),
+      tx("2026-09-20", 0, "Correction", "Zero booking"),
+      tx("2026-09-10", 12000, "Acme GmbH", "Reimbursement"),
+    ]);
+    const counterparties = () => bodyRows().map(counterpartyOf);
+    const tabButton = (name: string) => screen.getByRole("button", { name }) as HTMLButtonElement;
+
+    it("starts on All with every transaction shown", async () => {
+      mockApi({ "/api/transactions": [WITH_INCOME] });
+
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      expect(screen.getByRole("group", { name: "Transaction type" })).not.toBeNull();
+      expect(tabButton("All").getAttribute("aria-pressed")).toBe("true");
+      expect(counterparties()).toEqual(["Bank", "Lidl", "Employer"]);
+    });
+
+    it("shows only money in under Income and only money out under Expenses, in the original order", async () => {
+      mockApi({ "/api/transactions": [WITH_INCOME] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      await userEvent.click(tabButton("Income"));
+      expect(tabButton("Income").getAttribute("aria-pressed")).toBe("true");
+      expect(counterparties()).toEqual(["Employer"]);
+
+      await userEvent.click(tabButton("Expenses"));
+      expect(counterparties()).toEqual(["Bank", "Lidl"]);
+
+      await userEvent.click(tabButton("All"));
+      expect(counterparties()).toEqual(["Bank", "Lidl", "Employer"]);
+    });
+
+    it("shows a transaction of zero only under All", async () => {
+      mockApi({ "/api/transactions": [WITH_ZERO] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      expect(counterparties()).toEqual(["Bank", "Correction", "Acme GmbH"]);
+
+      await userEvent.click(tabButton("Income"));
+      expect(counterparties()).toEqual(["Acme GmbH"]);
+
+      await userEvent.click(tabButton("Expenses"));
+      expect(counterparties()).toEqual(["Bank"]);
+    });
+
+    it("works together with the category filter: a transaction must match both", async () => {
+      mockApi({ "/api/transactions": [WITH_INCOME] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      await userEvent.click(screen.getByRole("button", { expanded: false }));
+      await userEvent.click(screen.getByRole("checkbox", { name: "Groceries" }));
+
+      await userEvent.click(tabButton("Expenses"));
+      expect(counterparties()).toEqual(["Lidl"]);
+
+      await userEvent.click(tabButton("Income"));
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+      expect(screen.getByText("No income transactions in Groceries in September 2026.")).not.toBeNull();
+    });
+
+    it("names the tab when it leaves nothing to show", async () => {
+      mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      await userEvent.click(tabButton("Income"));
+
+      expect(screen.getByText("No income transactions in September 2026.")).not.toBeNull();
+      expect(screen.getByText("0 of 3 transactions")).not.toBeNull();
+    });
+
+    it("sends no request when the tab changes", async () => {
+      const fetchMock = mockApi({ "/api/transactions": [WITH_INCOME] });
+      renderPage();
+      await screen.findAllByRole("listitem");
+
+      await userEvent.click(tabButton("Expenses"));
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the tab when going to the previous and the next month", async () => {
+      mockApi({
+        "/api/transactions": [WITH_INCOME],
+        "/api/transactions?month=2026-08": [MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      await userEvent.click(tabButton("Expenses"));
+
+      await userEvent.click(button(/previous month/i));
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(tabButton("Expenses").getAttribute("aria-pressed")).toBe("true");
+      expect(counterparties()).toEqual(["Pharmacy Apotheke", "Lidl"]);
+
+      mockApi({ "/api/transactions?month=2026-09": [WITH_INCOME] });
+      await userEvent.click(button(/next month/i));
+      await screen.findByRole("heading", { name: "September 2026" });
+      expect(tabButton("Expenses").getAttribute("aria-pressed")).toBe("true");
+      expect(counterparties()).toEqual(["Bank", "Lidl"]);
+    });
+
+    it("keeps the tab after an error and Retry", async () => {
+      mockApi({
+        "/api/transactions": [WITH_INCOME],
+        "/api/transactions?month=2026-08": [SERVER_ERROR, MIXED_AUGUST],
+      });
+      renderPage();
+      await screen.findAllByRole("listitem");
+      await userEvent.click(tabButton("Expenses"));
+      await userEvent.click(button(/previous month/i));
+      await screen.findByRole("alert");
+
+      await userEvent.click(button(/retry/i));
+
+      await screen.findByRole("heading", { name: "August 2026" });
+      expect(tabButton("Expenses").getAttribute("aria-pressed")).toBe("true");
+      expect(counterparties()).toEqual(["Pharmacy Apotheke", "Lidl"]);
+    });
+
+    it("is not shown when the user has no transactions at all", async () => {
+      mockApi({ "/api/transactions": [NOTHING_AT_ALL] });
+
+      renderPage();
+      await screen.findByText(/no transactions yet/i);
+
+      expect(screen.queryByRole("group", { name: "Transaction type" })).toBeNull();
+    });
   });
 
   it("shows the category and the date as DD.MM.YYYY in each row, in the order the server sent", async () => {

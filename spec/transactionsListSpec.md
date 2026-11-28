@@ -27,6 +27,8 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 - Each row shows the **counterparty**, a second line with the category and the date ("Groceries · 02.09.2026"), and the **amount**. Rows are sorted newest first. The details text of a transaction is not shown
 - The **date** in the second line is shown as `DD.MM.YYYY`, the same as in the CSV (`01.08.2026`). It is built from the ISO date string by splitting it, so no time zone can shift the day
 - **Amount** is shown with its sign (money out has a minus, money in a plus and is green) and the row's own currency, formatted like the Overview, e.g. "-€54.37" and "+€3,200.00". Amounts are not converted
+- A **count** at the top right of the card: "24 transactions" when the whole month is shown, "3 of 24 transactions" when the search, the checked categories or the tab narrow the list ("1 transaction" for one). It is announced politely when it changes. It is not shown while loading, for a month without transactions, or when the user has no transactions at all
+- **Tabs** All, Income and Expenses (a group named "Transaction type", the selected tab is announced as pressed). Income is money in (amount above zero), Expenses is money out (below zero). A transaction of zero shows only under All. The tab works together with the search and the category filter, is kept when the month changes and after Retry, and sends no request
 - The heading names the month, e.g. "September 2026"
 - Month navigation: "Previous month" and "Next month" buttons. "Next month" is disabled on the latest month with transactions (the month the page opened on). "Previous month" is not limited
 - CSV text (counterparty, details) is rendered as text only, never as HTML
@@ -104,6 +106,8 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 - A signed-in user with imported transactions sees a list with the counterparty, the category and date, and the amount of each transaction for the latest month that has transactions
 - Rows are sorted newest first
 - Amounts show their sign (money out with a minus, money in with a plus) and their original currency
+- The count follows the visible rows ("24 transactions", "3 of 24 transactions")
+- The Income and Expenses tabs split by the sign of the amount, and the selected tab stays after Previous month, Next month and Retry
 - Dates are shown as `DD.MM.YYYY`
 - The user can move to the previous and next month and the list updates. "Next month" is disabled on the latest month with transactions
 - With no transactions at all the user sees "No transactions yet. Import a CSV file on the Overview page." and no list
@@ -130,7 +134,7 @@ Frontend (fetch mocked by URL, as in `OverviewPage.test.tsx`):
 
 - `lib/months.test.ts`: `formatMonth("2026-09")` is "September 2026" and `nextMonth("2026-12")` is "2027-01"
 - `useMonthNavigation`, tested through the pages: loading then ready, keeps the previous data while loading, ignores an outdated response, error and retry
-- `TransactionsPage.test.tsx`: rows and order, signed amounts and currencies, `DD.MM.YYYY` dates, the no-transactions message with its link, the empty-month message, Previous/Next with the disabled Next on the latest month, a year boundary, error with Retry, a failure while moving shows the error and Retry instead of the list
+- `TransactionsPage.test.tsx`: rows and order, signed amounts and currencies, the count, the tabs, `DD.MM.YYYY` dates, the no-transactions message with its link, the empty-month message, Previous/Next with the disabled Next on the latest month, a year boundary, error with Retry, a failure while moving shows the error and Retry instead of the list
 - `App.test.tsx`: `/transactions` shows the page (replaces the placeholder heading test) and a signed-out `/transactions` still redirects to sign in
 - `OverviewPage.test.tsx` and the Overview cases in `App.test.tsx` pass unchanged after the refactor
 

@@ -66,9 +66,22 @@
   @include m.card;
 }
 
+// The heading of the card, with the count on its right.
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 .cardTitle {
   margin: 0;
   font-size: var(--text-lg);
+}
+
+.count {
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
 }
 
 // The toolbar row: the search box grows to fill the row and the category filter keeps its own size.
