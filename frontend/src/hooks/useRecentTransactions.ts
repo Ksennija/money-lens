@@ -9,8 +9,9 @@ export type RecentView =
   | { status: 'error' };
 
 // The newest transactions of one month. The server sends a month newest first, so the first few
-// are the newest. Without a month nothing is requested.
-export function useRecentTransactions(month: string | null): RecentView {
+// are the newest. Without a month nothing is requested. A new reloadKey asks again, e.g. after an
+// import.
+export function useRecentTransactions(month: string | null, reloadKey = 0): RecentView {
   const [loaded, setLoaded] = useState<{ month: string; view: RecentView } | null>(null);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function useRecentTransactions(month: string | null): RecentView {
     return () => {
       cancelled = true;
     };
-  }, [month]);
+  }, [month, reloadKey]);
 
   // An answer for another month is old: show "loading" until the one for this month arrives.
   return loaded && loaded.month === month ? loaded.view : { status: 'loading' };
