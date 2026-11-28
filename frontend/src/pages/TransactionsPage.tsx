@@ -8,6 +8,7 @@ import {
   type MonthResult,
 } from "../hooks/useMonthNavigation";
 import { describeCategories } from "../lib/categories";
+import { formatDate } from "../lib/dates";
 import { formatMonth, previousMonth } from "../lib/months";
 
 type MonthTransactions = { month: string; transactions: Transaction[] };
@@ -21,13 +22,6 @@ async function fetchTransactions(
     ok: true,
     data: { month: result.month, transactions: result.transactions },
   };
-}
-
-// The server sends ISO dates (2026-09-30); the CSV and the page use DD.MM.YYYY. Splitting the
-// text keeps a time zone from shifting the day.
-function formatDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split("-");
-  return `${day}.${month}.${year}`;
 }
 
 // Formatting only: amounts stay in the currency they were imported in.
