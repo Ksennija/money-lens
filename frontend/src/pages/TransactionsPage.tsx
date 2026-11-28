@@ -4,13 +4,13 @@ import { getTransactions, type Transaction } from "../api/transactions";
 import CategoryFilter from "../components/CategoryFilter/CategoryFilter";
 import MonthNav from "../components/MonthNav/MonthNav";
 import SearchBox from "../components/SearchBox/SearchBox";
+import TransactionList from "../components/TransactionList/TransactionList";
 import {
   useMonthNavigation,
   type MonthResult,
 } from "../hooks/useMonthNavigation";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { describeCategories } from "../lib/categories";
-import { formatDate } from "../lib/dates";
 import { formatMonth } from "../lib/months";
 import styles from "./TransactionsPage.module.scss";
 
@@ -28,13 +28,6 @@ async function fetchTransactions(
     ok: true,
     data: { month: result.month, transactions: result.transactions },
   };
-}
-
-// Formatting only: amounts stay in the currency they were imported in.
-function formatMoney(cents: number, currency: string): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(
-    cents / 100
-  );
 }
 
 // The search ignores letter case and looks in the counterparty and in the details. The text is
@@ -112,10 +105,23 @@ export default function TransactionsPage() {
 
   return (
     <div>
-      <h1>Transactions</h1>
+      <header className={styles.heading}>
+        <div>
+          <h1 className={styles.title}>Transactions</h1>
+          <p className={styles.subtitle}>Manage and track your money</p>
+        </div>
+        {shown && (
+          <MonthNav
+            month={shown.month}
+            latestMonth={latestMonth}
+            busy={busy}
+            onSelect={load}
+          />
+        )}
+      </header>
 
       {noTransactions && (
-        <p>
+        <p className={styles.message}>
           No transactions yet. Import a CSV file on the{" "}
           <Link to="/overview">Overview page</Link>.
         </p>
@@ -123,23 +129,31 @@ export default function TransactionsPage() {
 
       {view.status === "error" && (
         <>
-          <p role="alert" style={{ color: "crimson" }}>
+          <p role="alert" className={`${styles.message} ${styles.error}`}>
             {view.message}
           </p>
-          <button type="button" onClick={() => load(requested)}>
+          <button
+            type="button"
+            className={styles.retry}
+            onClick={() => load(requested)}
+          >
             Retry
           </button>
         </>
       )}
 
+      {view.status === "loading" && !shown && (
+        <p role="status" className={styles.message}>
+          Loading…
+        </p>
+      )}
+
       {shown && (
-        <>
-          <MonthNav
-            month={shown.month}
-            latestMonth={latestMonth}
-            busy={busy}
-            onSelect={load}
-          />
+        <section className={styles.card} aria-labelledby="transactions-card">
+          <h2 id="transactions-card" className={styles.cardTitle}>
+            All transactions
+          </h2>
+
           <div className={styles.tools}>
             <SearchBox
               value={searchText}
@@ -152,48 +166,31 @@ export default function TransactionsPage() {
               onChange={setSelectedCategories}
             />
           </div>
-        </>
-      )}
 
-      {view.status === "loading" && <p role="status">Loading…</p>}
-
-      {view.status === "ready" &&
-        !noTransactions &&
-        view.data.transactions.length === 0 && (
-          <p>{`No transactions in ${formatMonth(view.data.month)}.`}</p>
-        )}
-
-      {monthHasTransactions && visible.length === 0 && (
-        <p>
-          {describeNoMatches(
-            appliedSearch,
-            selectedCategories,
-            formatMonth(view.data.month)
+          {view.status === "loading" && (
+            <p role="status" className={styles.note}>
+              Loading…
+            </p>
           )}
-        </p>
-      )}
 
-      {visible.length > 0 && (
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">Counterparty</th>
-              <th scope="col">Details</th>
-              <th scope="col">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((t) => (
-              <tr key={t.id}>
-                <td>{formatDate(t.date)}</td>
-                <td>{t.counterparty}</td>
-                <td>{t.details}</td>
-                <td>{formatMoney(t.amountCents, t.currency)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {view.status === "ready" && view.data.transactions.length === 0 && (
+            <p className={styles.note}>{`No transactions in ${formatMonth(
+              view.data.month
+            )}.`}</p>
+          )}
+
+          {monthHasTransactions && visible.length === 0 && (
+            <p className={styles.note}>
+              {describeNoMatches(
+                appliedSearch,
+                selectedCategories,
+                formatMonth(view.data.month)
+              )}
+            </p>
+          )}
+
+          {visible.length > 0 && <TransactionList transactions={visible} />}
+        </section>
       )}
     </div>
   );

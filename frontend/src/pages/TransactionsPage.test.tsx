@@ -57,9 +57,14 @@ function renderPage() {
   );
 }
 
+// Every transaction is one list item: the counterparty and the "Category · date" line on the
+// left, the signed amount on the right.
 function bodyRows() {
-  return screen.getAllByRole("row").slice(1); // the first row holds the column headings
+  return screen.getAllByRole("listitem");
 }
+const counterpartyOf = (row: HTMLElement) => row.querySelector("strong")?.textContent;
+const amountOf = (row: HTMLElement) => row.querySelectorAll("strong")[1]?.textContent;
+const detailLineOf = (row: HTMLElement) => row.querySelector("span")?.textContent;
 
 const button = (name: RegExp) => screen.getByRole("button", { name }) as HTMLButtonElement;
 
@@ -80,22 +85,34 @@ describe("TransactionsPage", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/transactions");
   });
 
-  it("has a Transactions heading and the columns Date, Counterparty, Details and Amount", async () => {
+  it("has the heading Transactions with its subtitle, and the list in a card named All transactions", async () => {
     mockApi({ "/api/transactions": [SEPTEMBER] });
 
     renderPage();
-    await screen.findByRole("table");
+    await screen.findAllByRole("listitem");
 
     expect(screen.getByRole("heading", { level: 1, name: "Transactions" })).not.toBeNull();
-    const headings = screen.getAllByRole("columnheader").map((h) => h.textContent);
-    expect(headings).toEqual(["Date", "Counterparty", "Details", "Amount"]);
+    expect(screen.getByText("Manage and track your money")).not.toBeNull();
+    const card = screen.getByRole("region", { name: "All transactions" });
+    expect(within(card).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(card).getByRole("searchbox", { name: "Search transactions" })).not.toBeNull();
+  });
+
+  it("shows no table and no column headings", async () => {
+    mockApi({ "/api/transactions": [SEPTEMBER] });
+
+    renderPage();
+    await screen.findAllByRole("listitem");
+
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryAllByRole("columnheader")).toHaveLength(0);
   });
 
   describe("category filter", () => {
     // The filter button is the only button that says whether it is expanded.
     const filterButton = () =>
       (screen.queryByRole("button", { expanded: false }) ?? screen.getByRole("button", { expanded: true })) as HTMLButtonElement;
-    const counterparties = () => bodyRows().map((row) => within(row).getAllByRole("cell")[1].textContent);
+    const counterparties = () => bodyRows().map(counterpartyOf);
     async function toggleCategory(name: string) {
       if (screen.queryAllByRole("checkbox").length === 0) await userEvent.click(filterButton());
       await userEvent.click(screen.getByRole("checkbox", { name }));
@@ -105,7 +122,7 @@ describe("TransactionsPage", () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
 
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       expect(filterButton().textContent).toBe("All categories");
       expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
@@ -115,7 +132,7 @@ describe("TransactionsPage", () => {
     it("shows only the transactions of a checked category, in the same order", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await toggleCategory("Groceries");
 
@@ -126,7 +143,7 @@ describe("TransactionsPage", () => {
     it("shows the union of two checked categories in the original order", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await toggleCategory("Fees");
       await toggleCategory("Groceries");
@@ -138,7 +155,7 @@ describe("TransactionsPage", () => {
     it("shows everything again when the last category is unchecked", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await toggleCategory("Groceries");
 
       await toggleCategory("Groceries");
@@ -150,7 +167,7 @@ describe("TransactionsPage", () => {
     it("shows everything again after Clear", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await toggleCategory("Groceries");
       await toggleCategory("Fees");
 
@@ -163,7 +180,7 @@ describe("TransactionsPage", () => {
     it("does not request the transactions again when the filter changes", async () => {
       const fetchMock = mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await toggleCategory("Fees");
 
@@ -180,7 +197,7 @@ describe("TransactionsPage", () => {
         ],
       });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       expect(counterparties()).toEqual(["Vet", "Lidl"]);
 
       await toggleCategory("Groceries");
@@ -191,14 +208,14 @@ describe("TransactionsPage", () => {
     it("names the checked categories when none matches, and keeps the filter and the month buttons", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await toggleCategory("Other");
       expect(screen.getByText("No transactions in Other in September 2026.")).not.toBeNull();
 
       await toggleCategory("Health");
       expect(screen.getByText("No transactions in Health and Other in September 2026.")).not.toBeNull();
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
       expect(filterButton().textContent).toBe("Health, Other");
       expect(button(/previous month/i)).not.toBeNull();
     });
@@ -209,7 +226,7 @@ describe("TransactionsPage", () => {
         "/api/transactions?month=2026-08": [MIXED_AUGUST],
       });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await toggleCategory("Groceries");
       await toggleCategory("Health");
 
@@ -231,7 +248,7 @@ describe("TransactionsPage", () => {
         "/api/transactions?month=2026-08": [MIXED_AUGUST],
       });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await toggleCategory("Fees");
 
       await userEvent.click(button(/previous month/i));
@@ -251,7 +268,7 @@ describe("TransactionsPage", () => {
         return { ok: true, status: 200, json: async () => MIXED_AUGUST.body };
       }) as unknown as typeof fetch;
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await toggleCategory("Groceries");
 
       await userEvent.click(button(/previous month/i));
@@ -269,7 +286,7 @@ describe("TransactionsPage", () => {
         "/api/transactions?month=2026-08": [SERVER_ERROR, MIXED_AUGUST],
       });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await toggleCategory("Groceries");
       await userEvent.click(button(/previous month/i));
       await screen.findByRole("alert");
@@ -294,7 +311,7 @@ describe("TransactionsPage", () => {
   describe("search", () => {
     const SEARCH_DELAY = 300;
     const searchBox = () => screen.getByRole("searchbox", { name: "Search transactions" }) as HTMLInputElement;
-    const counterparties = () => bodyRows().map((row) => within(row).getAllByRole("cell")[1].textContent);
+    const counterparties = () => bodyRows().map(counterpartyOf);
     const MUELLER = list("2026-09", [
       tx("2026-09-30", -490, "Bank", "Account fee"),
       tx("2026-09-10", -500, "MÜLLER Bäckerei", "Brötchen"),
@@ -325,7 +342,7 @@ describe("TransactionsPage", () => {
       mockApi({ "/api/transactions": [SEPTEMBER] });
 
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       expect(searchBox().value).toBe("");
       expect(searchBox().getAttribute("placeholder")).toBe("Search merchant or description…");
@@ -335,7 +352,7 @@ describe("TransactionsPage", () => {
     it("filters 300 ms after the last keystroke, and not before", async () => {
       mockApi({ "/api/transactions": [SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       jest.useFakeTimers();
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
@@ -358,7 +375,7 @@ describe("TransactionsPage", () => {
     ])("finds %j in the counterparty or the details, whatever the letter case", async (text, expected) => {
       mockApi({ "/api/transactions": [SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch(text);
 
@@ -368,7 +385,7 @@ describe("TransactionsPage", () => {
     it("ignores letter case for letters outside ASCII too", async () => {
       mockApi({ "/api/transactions": [MUELLER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch("müller");
 
@@ -384,11 +401,11 @@ describe("TransactionsPage", () => {
           ],
         });
         renderPage();
-        await screen.findByRole("table");
+        await screen.findAllByRole("listitem");
 
         await typeInSearch(text);
 
-        expect(screen.queryByRole("table")).toBeNull();
+        expect(screen.queryAllByRole("listitem")).toHaveLength(0);
         expect(screen.getByText(`No transactions match "${text}" in September 2026.`)).not.toBeNull();
       }
     );
@@ -396,7 +413,7 @@ describe("TransactionsPage", () => {
     it("keeps the order the server sent", async () => {
       mockApi({ "/api/transactions": [SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch("a");
 
@@ -406,7 +423,7 @@ describe("TransactionsPage", () => {
     it("sends no request when the text changes", async () => {
       const fetchMock = mockApi({ "/api/transactions": [SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch("rewe");
 
@@ -416,7 +433,7 @@ describe("TransactionsPage", () => {
     it("shows every row again at once when the box is cleared, without waiting", async () => {
       mockApi({ "/api/transactions": [SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await typeInSearch("rewe");
       expect(counterparties()).toEqual(["REWE Markt"]);
 
@@ -428,7 +445,7 @@ describe("TransactionsPage", () => {
     it("works together with the category filter: a transaction must match both", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await userEvent.click(screen.getByRole("button", { expanded: false }));
       await userEvent.click(screen.getByRole("checkbox", { name: "Groceries" }));
 
@@ -442,7 +459,7 @@ describe("TransactionsPage", () => {
     it("names the text when nothing matches, and the checked categories too", async () => {
       mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch("zzz");
       expect(screen.getByText('No transactions match "zzz" in September 2026.')).not.toBeNull();
@@ -456,7 +473,7 @@ describe("TransactionsPage", () => {
     it("shows the typed text as text, never as HTML", async () => {
       mockApi({ "/api/transactions": [SEPTEMBER] });
       const { container } = renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch("<b>x</b>");
 
@@ -470,7 +487,7 @@ describe("TransactionsPage", () => {
         "/api/transactions?month=2026-08": [MIXED_AUGUST],
       });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await typeInSearch("lidl");
 
       await userEvent.click(button(/previous month/i));
@@ -491,7 +508,7 @@ describe("TransactionsPage", () => {
         "/api/transactions?month=2026-08": [SERVER_ERROR, MIXED_AUGUST],
       });
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await typeInSearch("lidl");
       await userEvent.click(button(/previous month/i));
       await screen.findByRole("alert");
@@ -521,7 +538,7 @@ describe("TransactionsPage", () => {
       const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
       mockApi({ "/api/transactions": [SEPTEMBER] });
       const { unmount } = renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
 
       await typeInSearch("rewe", { wait: false });
       jest.useFakeTimers();
@@ -533,26 +550,46 @@ describe("TransactionsPage", () => {
     });
   });
 
-  it("shows dates as DD.MM.YYYY and keeps the order the server sent", async () => {
+  it("shows the category and the date as DD.MM.YYYY in each row, in the order the server sent", async () => {
     mockApi({ "/api/transactions": [SEPTEMBER] });
 
     renderPage();
-    await screen.findByRole("table");
+    await screen.findAllByRole("listitem");
 
-    const cells = bodyRows().map((row) => within(row).getAllByRole("cell").map((c) => c.textContent));
-    expect(cells[0]).toEqual(["30.09.2026", "Bank", "Account fee", "-€4.90"]);
-    expect(cells[1][0]).toBe("20.09.2026");
-    expect(cells[2][0]).toBe("02.09.2026");
+    expect(bodyRows().map(counterpartyOf)).toEqual(["Bank", "Acme GmbH", "REWE Markt"]);
+    expect(bodyRows().map(detailLineOf)).toEqual(["Other · 30.09.2026", "Other · 20.09.2026", "Other · 02.09.2026"]);
   });
 
-  it("shows money out with a minus sign and money in without one", async () => {
+  it("names the category of each row", async () => {
+    mockApi({ "/api/transactions": [MIXED_SEPTEMBER] });
+
+    renderPage();
+    await screen.findAllByRole("listitem");
+
+    expect(bodyRows().map(detailLineOf)).toEqual([
+      "Fees · 30.09.2026",
+      "Groceries · 12.09.2026",
+      "Groceries · 02.09.2026",
+    ]);
+  });
+
+  it("does not show the details of a transaction", async () => {
     mockApi({ "/api/transactions": [SEPTEMBER] });
 
     renderPage();
-    await screen.findByRole("table");
+    await screen.findAllByRole("listitem");
 
-    const amounts = bodyRows().map((row) => within(row).getAllByRole("cell")[3].textContent);
-    expect(amounts).toEqual(["-€4.90", "€120.00", "-€72.18"]);
+    expect(screen.queryByText(/account fee/i)).toBeNull();
+    expect(screen.queryByText(/expense reimbursement/i)).toBeNull();
+  });
+
+  it("shows money out with a minus sign and money in with a plus sign", async () => {
+    mockApi({ "/api/transactions": [SEPTEMBER] });
+
+    renderPage();
+    await screen.findAllByRole("listitem");
+
+    expect(bodyRows().map(amountOf)).toEqual(["-€4.90", "+€120.00", "-€72.18"]);
   });
 
   it("shows every transaction in the currency it was imported in", async () => {
@@ -563,10 +600,9 @@ describe("TransactionsPage", () => {
     });
 
     renderPage();
-    await screen.findByRole("table");
+    await screen.findAllByRole("listitem");
 
-    const amounts = bodyRows().map((row) => within(row).getAllByRole("cell")[3].textContent);
-    expect(amounts).toEqual(["-€10.00", "-$10.00"]);
+    expect(bodyRows().map(amountOf)).toEqual(["-€10.00", "-$10.00"]);
   });
 
   it("shows text from the CSV as text, never as HTML", async () => {
@@ -574,12 +610,12 @@ describe("TransactionsPage", () => {
       "/api/transactions": [list("2026-08", [tx("2026-08-05", -100, "<b>Evil</b>", "<img src=x onerror=alert(1)>")])],
     });
 
-    renderPage();
-    const table = await screen.findByRole("table");
+    const { container } = renderPage();
+    await screen.findAllByRole("listitem");
 
-    expect(within(table).getByText("<b>Evil</b>")).not.toBeNull();
-    expect(table.querySelector("b")).toBeNull();
-    expect(table.querySelector("img")).toBeNull();
+    expect(screen.getByText("<b>Evil</b>")).not.toBeNull();
+    expect(container.querySelector("b")).toBeNull();
+    expect(container.querySelector("img")).toBeNull();
   });
 
   describe("month navigation", () => {
@@ -660,7 +696,7 @@ describe("TransactionsPage", () => {
 
       expect(await screen.findByText(/no transactions yet/i)).not.toBeNull();
       expect(screen.getByRole("link", { name: /overview page/i }).getAttribute("href")).toBe("/overview");
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
       expect(screen.queryByRole("button", { name: /month/i })).toBeNull();
     });
 
@@ -673,7 +709,7 @@ describe("TransactionsPage", () => {
 
       expect(await screen.findByText("No transactions in July 2026.")).not.toBeNull();
       expect(screen.queryByText(/no transactions yet/i)).toBeNull();
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
       expect(button(/next month/i).disabled).toBe(false);
     });
   });
@@ -685,11 +721,11 @@ describe("TransactionsPage", () => {
       renderPage();
 
       expect((await screen.findByRole("alert")).textContent).toBe("Something went wrong");
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
 
       await userEvent.click(screen.getByRole("button", { name: /retry/i }));
 
-      expect(await screen.findByRole("table")).not.toBeNull();
+      expect(await screen.findAllByRole("listitem")).not.toBeNull();
       expect(screen.queryByRole("alert")).toBeNull();
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
@@ -711,11 +747,11 @@ describe("TransactionsPage", () => {
       });
 
       renderPage();
-      await screen.findByRole("table");
+      await screen.findAllByRole("listitem");
       await userEvent.click(button(/previous month/i));
 
       expect((await screen.findByRole("alert")).textContent).toBe("Something went wrong");
-      expect(screen.queryByRole("table")).toBeNull();
+      expect(screen.queryAllByRole("listitem")).toHaveLength(0);
 
       await userEvent.click(screen.getByRole("button", { name: /retry/i }));
 

@@ -380,8 +380,8 @@ describe("App", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "September 2026" })).not.toBeNull();
-    expect(screen.getByRole("cell", { name: "30.09.2026" })).not.toBeNull();
-    expect(screen.getByRole("cell", { name: "-€4.90" })).not.toBeNull();
+    expect(screen.getByText("Fees · 30.09.2026")).not.toBeNull();
+    expect(screen.getByText("-€4.90")).not.toBeNull();
   });
 
   it.each([

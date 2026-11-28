@@ -8,7 +8,7 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 
 ## Scope
 
-- A table of the user's transactions for one month: Date, Counterparty, Details, Amount
+- A list of the user's transactions for one month, in a card. Each row shows the counterparty, the category and the date, and the amount (the same rows as the recent transactions on the Overview)
 - The page opens on the latest month that has transactions. The user can move to the previous and next month
 - Loading, error and empty states
 - A new endpoint `GET /api/transactions` that returns the signed-in user's transactions for a month
@@ -18,15 +18,15 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 
 1. A signed-in user opens Transactions from the nav bar
 2. The page shows "Loading…", then the latest month that has transactions (for the sample file: September 2026)
-3. The user reads the table, newest first. Previous month shows August 2026. Next month returns to September
+3. The user reads the list, newest first. Previous month shows August 2026. Next month returns to September
 4. Next month is disabled on the latest month. Previous month is not limited (as on the Overview), so an empty earlier month shows the empty-month message
 5. A user with no transactions sees a pointer to the import on the Overview page
 
 ## Behaviour
 
-- Columns: **Date**, **Counterparty**, **Details**, **Amount**. Rows are sorted newest first
-- **Date** is shown as `DD.MM.YYYY`, the same as in the CSV (`01.08.2026`). It is built from the ISO date string by splitting it, so no time zone can shift the day
-- **Amount** is shown with its sign (money out is negative) and the row's own currency, formatted like the Overview, e.g. "-€54.37" and "€3,200.00". Amounts are not converted
+- Each row shows the **counterparty**, a second line with the category and the date ("Groceries · 02.09.2026"), and the **amount**. Rows are sorted newest first. The details text of a transaction is not shown
+- The **date** in the second line is shown as `DD.MM.YYYY`, the same as in the CSV (`01.08.2026`). It is built from the ISO date string by splitting it, so no time zone can shift the day
+- **Amount** is shown with its sign (money out has a minus, money in a plus and is green) and the row's own currency, formatted like the Overview, e.g. "-€54.37" and "+€3,200.00". Amounts are not converted
 - The heading names the month, e.g. "September 2026"
 - Month navigation: "Previous month" and "Next month" buttons. "Next month" is disabled on the latest month with transactions (the month the page opened on). "Previous month" is not limited
 - CSV text (counterparty, details) is rendered as text only, never as HTML
@@ -38,10 +38,10 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 | State                                       | What the user sees                                                                                                    |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Loading                                     | A status message "Loading…"                                                                                           |
-| User has no transactions at all             | "No transactions yet. Import a CSV file on the Overview page." with a link to `/overview`. No table, no month buttons |
+| User has no transactions at all             | "No transactions yet. Import a CSV file on the Overview page." with a link to `/overview`. No list, no month buttons |
 | Month with no transactions but others exist | "No transactions in September 2026." The month buttons stay                                                           |
 | Any error                                   | An alert with an error message and a Retry button                                                                     |
-| Moving to another month fails               | The error and a Retry button replace the table, as on the Overview. Retry asks for the month again                    |
+| Moving to another month fails               | The error and a Retry button replace the list, as on the Overview. Retry asks for the month again                    |
 
 ## Shared month navigation
 
@@ -55,7 +55,7 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 ## Frontend changes
 
 - `frontend/src/api/transactions.ts` (new), modelled on `api/comparison.ts`: `getTransactions(month?)`. It validates the body and returns a generic server error for a malformed body or a failed request
-- `frontend/src/pages/TransactionsPage.tsx` (new): a "Transactions" heading, `MonthNav` and the table (`scope="col"` headers). It replaces the Transactions placeholder in `frontend/src/App.tsx` (`PRIVATE_PLACEHOLDERS`)
+- `frontend/src/pages/TransactionsPage.tsx` (new): a "Transactions" heading, `MonthNav` and the list of transactions (`TransactionList`). It replaces the Transactions placeholder in `frontend/src/App.tsx` (`PRIVATE_PLACEHOLDERS`)
 
 ## Backend change
 
@@ -101,12 +101,12 @@ After importing a bank CSV (`csvImportSpec.md`) the user can see monthly totals 
 
 ## Acceptance criteria
 
-- A signed-in user with imported transactions sees a table with Date, Counterparty, Details and Amount for the latest month that has transactions
+- A signed-in user with imported transactions sees a list with the counterparty, the category and date, and the amount of each transaction for the latest month that has transactions
 - Rows are sorted newest first
-- Amounts show their sign (money out negative) and their original currency
+- Amounts show their sign (money out with a minus, money in with a plus) and their original currency
 - Dates are shown as `DD.MM.YYYY`
-- The user can move to the previous and next month and the table updates. "Next month" is disabled on the latest month with transactions
-- With no transactions at all the user sees "No transactions yet. Import a CSV file on the Overview page." and no table
+- The user can move to the previous and next month and the list updates. "Next month" is disabled on the latest month with transactions
+- With no transactions at all the user sees "No transactions yet. Import a CSV file on the Overview page." and no list
 - A month without transactions shows "No transactions in <Month Year>."
 - While loading the user sees "Loading…". When the request fails the user sees an error message and a Retry button
 - A user sees only their own transactions
@@ -130,7 +130,7 @@ Frontend (fetch mocked by URL, as in `OverviewPage.test.tsx`):
 
 - `lib/months.test.ts`: `formatMonth("2026-09")` is "September 2026" and `nextMonth("2026-12")` is "2027-01"
 - `useMonthNavigation`, tested through the pages: loading then ready, keeps the previous data while loading, ignores an outdated response, error and retry
-- `TransactionsPage.test.tsx`: columns and order, signed amounts and currencies, `DD.MM.YYYY` dates, the no-transactions message with its link, the empty-month message, Previous/Next with the disabled Next on the latest month, a year boundary, error with Retry, a failure while moving shows the error and Retry instead of the table
+- `TransactionsPage.test.tsx`: rows and order, signed amounts and currencies, `DD.MM.YYYY` dates, the no-transactions message with its link, the empty-month message, Previous/Next with the disabled Next on the latest month, a year boundary, error with Retry, a failure while moving shows the error and Retry instead of the list
 - `App.test.tsx`: `/transactions` shows the page (replaces the placeholder heading test) and a signed-out `/transactions` still redirects to sign in
 - `OverviewPage.test.tsx` and the Overview cases in `App.test.tsx` pass unchanged after the refactor
 
