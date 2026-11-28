@@ -108,14 +108,7 @@
 }
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-
-  @include m.breakpoint-down(bp.$bp-md) {
-    padding: 14px;
-  }
+  @include m.card;
 }
 
 .wide {

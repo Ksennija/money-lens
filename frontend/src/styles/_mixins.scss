@@ -1,6 +1,21 @@
+@use "breakpoints" as bp;
+
 @mixin breakpoint-down($bp) {
   @media (max-width: $bp) {
     @content;
+  }
+}
+
+// The box of a card, as in frontend/design/overview.html: white, a thin border, rounded corners
+// and a little less padding on a phone.
+@mixin card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+
+  @include breakpoint-down(bp.$bp-md) {
+    padding: 14px;
   }
 }
 
