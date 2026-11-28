@@ -150,3 +150,17 @@
   margin: 0;
   font-size: var(--text-lg);
 }
+
+.highlight {
+  margin: 18px 0 0;
+  padding: 15px;
+  background: var(--soft);
+  border-radius: var(--radius-md);
+  color: var(--green);
+  font-size: var(--text-xs);
+
+  a {
+    color: inherit;
+    font-weight: var(--weight-bold);
+  }
+}

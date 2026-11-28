@@ -46,6 +46,12 @@ const COMPARISON = {
   },
 };
 
+// The Overview also asks for the recent transactions of the month it shows.
+const NO_RECENT_TRANSACTIONS = {
+  status: 200,
+  body: { code: "transactions", month: "2026-09", transactions: [] },
+};
+
 describe("App", () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -222,6 +228,7 @@ describe("App", () => {
     mockApi({
       "GET /api/me": [LOGGED_IN_ME],
       "GET /api/comparison": [COMPARISON],
+      "GET /api/transactions?month=2026-09": [NO_RECENT_TRANSACTIONS],
       "POST /api/logout": [
         {
           status: 500,
@@ -378,7 +385,14 @@ describe("App", () => {
   });
 
   it.each([
-    ["/overview", "Overview", { "GET /api/comparison": [COMPARISON] }],
+    [
+      "/overview",
+      "Overview",
+      {
+        "GET /api/comparison": [COMPARISON],
+        "GET /api/transactions?month=2026-09": [NO_RECENT_TRANSACTIONS],
+      },
+    ],
     [
       "/transactions",
       "Transactions",

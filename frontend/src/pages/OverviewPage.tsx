@@ -1,10 +1,13 @@
+import { Link } from "react-router-dom";
 import { getComparison, type Comparison, type Totals } from "../api/comparison";
 import MonthNav from "../components/MonthNav/MonthNav";
 import RatesNotice from "../components/RatesNotice/RatesNotice";
+import TransactionList from "../components/TransactionList/TransactionList";
 import {
   useMonthNavigation,
   type MonthResult,
 } from "../hooks/useMonthNavigation";
+import { useRecentTransactions } from "../hooks/useRecentTransactions";
 import { formatMonth, formatMonthName } from "../lib/months";
 import styles from "./OverviewPage.module.scss";
 
@@ -50,6 +53,15 @@ function formatSpendingPercent(comparison: Comparison): string {
   if (percent === 0) return "no change compared with last month";
   const arrow = percent > 0 ? "↑" : "↓";
   return `${arrow} ${Math.abs(percent).toFixed(1)}% compared with last month`;
+}
+
+// "Your spending is 8.4% higher than last month." Nothing when the previous month had no spending.
+function describeSpendingChange(comparison: Comparison): string | null {
+  const percent = comparison.change.spendingPercent;
+  if (percent === null) return null;
+  if (percent === 0) return "Your spending is the same as last month.";
+  const direction = percent > 0 ? "higher" : "lower";
+  return `Your spending is ${Math.abs(percent).toFixed(1)}% ${direction} than last month.`;
 }
 
 // Green for good news, red for bad news. Nothing when the value did not move or there is no
@@ -114,6 +126,13 @@ export default function OverviewPage() {
       ? view.data
       : null;
   const busy = view.status === "loading";
+  const recent = useRecentTransactions(
+    view.status === "ready" && !noTransactions ? view.data.month : null
+  );
+  const highlight =
+    view.status === "ready" && !noTransactions
+      ? describeSpendingChange(view.data)
+      : null;
 
   return (
     <section>
@@ -252,6 +271,41 @@ export default function OverviewPage() {
               {formatSpendingPercent(view.data)}
             </p>
           </article>
+
+          <article
+            className={cx(styles.card, styles.wide)}
+            aria-labelledby="overview-recent"
+          >
+            <div className={styles.between}>
+              <h2 id="overview-recent" className={styles.cardTitle}>
+                Recent transactions
+              </h2>
+              <Link to="/transactions">
+                See all <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+            {recent.status === "loading" && (
+              <p className={styles.change}>Loading…</p>
+            )}
+            {recent.status === "error" && (
+              <p role="alert" className={styles.change}>
+                Recent transactions could not be loaded.
+              </p>
+            )}
+            {recent.status === "ready" && recent.transactions.length === 0 && (
+              <p className={styles.change}>No transactions in this month</p>
+            )}
+            {recent.status === "ready" && recent.transactions.length > 0 && (
+              <TransactionList transactions={recent.transactions} />
+            )}
+          </article>
+
+          {highlight && (
+            <p className={styles.highlight}>
+              <strong>Spending highlight:</strong> {highlight}{" "}
+              <Link to="/insights">Explore insights</Link>.
+            </p>
+          )}
         </>
       )}
     </section>
