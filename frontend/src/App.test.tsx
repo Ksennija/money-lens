@@ -46,6 +46,12 @@ const COMPARISON = {
   },
 };
 
+// The Overview also asks for the recent transactions of the month it shows.
+const NO_RECENT_TRANSACTIONS = {
+  status: 200,
+  body: { code: "transactions", month: "2026-09", transactions: [] },
+};
+
 describe("App", () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -157,7 +163,7 @@ describe("App", () => {
       await screen.findByRole("heading", { name: "September 2026 · EUR" })
     ).not.toBeNull();
     expect(
-      screen.getByRole("heading", { name: /import transactions/i })
+      screen.getByRole("button", { name: "Import transactions" })
     ).not.toBeNull();
     expect(screen.queryByRole("heading", { name: /sign in/i })).toBeNull();
   });
@@ -222,6 +228,7 @@ describe("App", () => {
     mockApi({
       "GET /api/me": [LOGGED_IN_ME],
       "GET /api/comparison": [COMPARISON],
+      "GET /api/transactions?month=2026-09": [NO_RECENT_TRANSACTIONS],
       "POST /api/logout": [
         {
           status: 500,
@@ -376,4 +383,59 @@ describe("App", () => {
     expect(screen.getByRole("cell", { name: "30.09.2026" })).not.toBeNull();
     expect(screen.getByRole("cell", { name: "-€4.90" })).not.toBeNull();
   });
+
+  it.each([
+    [
+      "/overview",
+      "Overview",
+      {
+        "GET /api/comparison": [COMPARISON],
+        "GET /api/transactions?month=2026-09": [NO_RECENT_TRANSACTIONS],
+      },
+    ],
+    [
+      "/transactions",
+      "Transactions",
+      {
+        "GET /api/transactions": [
+          { status: 200, body: { code: "transactions", month: "2026-09", transactions: [] } },
+        ],
+      },
+    ],
+    [
+      "/insights",
+      "Insights",
+      {
+        "GET /api/category-changes": [
+          {
+            status: 200,
+            body: {
+              code: "category-changes",
+              month: "2026-09",
+              currency: "EUR",
+              hasTransactions: false,
+              changes: [],
+            },
+          },
+        ],
+      },
+    ],
+  ])(
+    "shows who is signed in above the heading on %s, with one main and one h1",
+    async (path, title, routes) => {
+      mockApi({ "GET /api/me": [LOGGED_IN_ME], ...routes });
+
+      render(
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      );
+
+      const heading = await screen.findByRole("heading", { level: 1, name: title });
+      const user = screen.getByText("Logged in as user@example.com");
+      expect(user.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getAllByRole("main")).toHaveLength(1);
+      expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    }
+  );
 });

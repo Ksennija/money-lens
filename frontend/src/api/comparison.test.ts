@@ -61,9 +61,43 @@ describe("getComparison", () => {
         currency: "EUR",
         current: { spendingCents: 296000, incomeCents: 320000, netCents: 24000 },
         previous: { spendingCents: 259000, incomeCents: 310000, netCents: 51000 },
-        change: { spendingCents: 37000, incomeCents: 10000, netCents: -27000 },
+        change: {
+          spendingCents: 37000,
+          incomeCents: 10000,
+          netCents: -27000,
+          spendingPercent: 14.3,
+          incomePercent: 3.2,
+        },
         ratesApproximate: false,
       },
+    });
+  });
+
+  it("returns the percent change as null when the server sends null", async () => {
+    mockFetchResponse(200, {
+      ...BODY,
+      change: { ...BODY.change, spendingPercent: null, incomePercent: null },
+    });
+
+    const result = await getComparison();
+
+    expect(result).toMatchObject({
+      ok: true,
+      comparison: { change: { spendingPercent: null, incomePercent: null } },
+    });
+  });
+
+  it("treats a missing or invalid percent as null", async () => {
+    mockFetchResponse(200, {
+      ...BODY,
+      change: { spendingCents: 37000, incomeCents: 10000, netCents: -27000, spendingPercent: "14.3" },
+    });
+
+    const result = await getComparison();
+
+    expect(result).toMatchObject({
+      ok: true,
+      comparison: { change: { spendingPercent: null, incomePercent: null } },
     });
   });
 

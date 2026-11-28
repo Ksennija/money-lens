@@ -1,0 +1,36 @@
+.list {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.details {
+  flex: 1;
+  min-width: 0;
+
+  strong,
+  .meta {
+    display: block;
+  }
+}
+
+.meta {
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
+}
+
+.income {
+  color: var(--positive);
+}

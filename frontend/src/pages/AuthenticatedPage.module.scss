@@ -1,0 +1,25 @@
+@use "../styles/breakpoints" as bp;
+@use "../styles/mixins" as m;
+
+// Width and side space match the header in NavBar.module.scss and .app in
+// frontend/design/overview.html.
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--space-5) var(--space-8);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    padding: 0 var(--space-3) var(--space-6);
+  }
+}
+
+.user {
+  margin: var(--space-8) 0 var(--space-1);
+  color: var(--muted-strong);
+  font-size: var(--text-xs);
+
+  @include m.breakpoint-down(bp.$bp-md) {
+    margin-top: var(--space-5);
+  }
+}

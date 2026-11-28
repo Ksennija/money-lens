@@ -1,12 +1,19 @@
 export type Totals = { spendingCents: number; incomeCents: number; netCents: number };
 
+// The percent is how much the value moved vs the previous month, rounded to one decimal by the
+// server (8.4 means 8.4%). It is null when the previous month had nothing to compare with.
+export type Change = Totals & {
+  spendingPercent: number | null;
+  incomePercent: number | null;
+};
+
 export type Comparison = {
   month: string; // YYYY-MM
   previousMonth: string; // YYYY-MM
   currency: string;
   current: Totals;
   previous: Totals;
-  change: Totals; // current minus previous
+  change: Change; // current minus previous
   ratesApproximate: boolean; // some amounts use an older exchange rate
 };
 
@@ -32,6 +39,21 @@ function toTotals(value: unknown): Totals | null {
   return { spendingCents: totals.spendingCents, incomeCents: totals.incomeCents, netCents: totals.netCents };
 }
 
+function toPercent(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function toChange(value: unknown): Change | null {
+  const totals = toTotals(value);
+  if (!totals) return null;
+  const change = value as { spendingPercent?: unknown; incomePercent?: unknown };
+  return {
+    ...totals,
+    spendingPercent: toPercent(change.spendingPercent),
+    incomePercent: toPercent(change.incomePercent),
+  };
+}
+
 // Without a month the server reports the month of the user's most recent transaction.
 export async function getComparison(month?: string): Promise<ComparisonResult> {
   try {
@@ -41,7 +63,7 @@ export async function getComparison(month?: string): Promise<ComparisonResult> {
     if (res.ok) {
       const current = toTotals(body?.current);
       const previous = toTotals(body?.previous);
-      const change = toTotals(body?.change);
+      const change = toChange(body?.change);
       if (
         typeof body?.month !== 'string' ||
         typeof body?.previousMonth !== 'string' ||
