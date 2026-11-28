@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { CATEGORIES } from '../../lib/categories';
+import styles from './CategoryFilter.module.scss';
 
 type Props = {
   selected: string[]; // category ids; empty means all
@@ -41,6 +42,7 @@ export default function CategoryFilter({ selected, onChange }: Props) {
   return (
     <div
       ref={rootRef}
+      className={styles.root}
       onKeyDown={(e) => {
         if (e.key === 'Escape' && open) {
           setOpen(false);
@@ -51,6 +53,7 @@ export default function CategoryFilter({ selected, onChange }: Props) {
       <button
         ref={buttonRef}
         type="button"
+        className={styles.button}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(!open)}
@@ -59,12 +62,12 @@ export default function CategoryFilter({ selected, onChange }: Props) {
       </button>
 
       {open && (
-        <div id={panelId}>
-          <fieldset>
-            <legend>Categories</legend>
+        <div id={panelId} className={styles.panel}>
+          <fieldset className={styles.fieldset}>
+            <legend className={styles.legend}>Categories</legend>
             {CATEGORIES.map((category) => (
               <div key={category.id}>
-                <label>
+                <label className={styles.option}>
                   <input
                     type="checkbox"
                     checked={selected.includes(category.id)}
@@ -75,9 +78,16 @@ export default function CategoryFilter({ selected, onChange }: Props) {
               </div>
             ))}
           </fieldset>
-          <button type="button" disabled={selected.length === 0} onClick={() => onChange([])}>
-            Clear
-          </button>
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.clear}
+              disabled={selected.length === 0}
+              onClick={() => onChange([])}
+            >
+              Clear
+            </button>
+          </div>
         </div>
       )}
     </div>
